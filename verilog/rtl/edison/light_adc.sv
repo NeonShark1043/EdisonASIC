@@ -53,60 +53,60 @@ module sar_adc_controller #(
     end
 
     // Control Path Logic
-    always_ff @(posedge clk or negedge nrst) begin
+    always_comb begin
         if(!nrst) begin
-            sar_reg <= '0;
-            bit_index <= BIT_WIDTH - 1;
-            wait_counter <= '0;
-            adc_out <= '0;
-            data_ready <= 0;
-            sah_en <= 0;
+            sar_reg = '0;
+            bit_index = BIT_WIDTH - 1;
+            wait_counter = '0;
+            adc_out = '0;
+            data_ready = 0;
+            sah_en = 0;
         end else begin
             case(current_state)
                 IDLE: begin
-                    data_ready <= 0;
-                    wait_counter <= '0;
-                    bit_index <= BIT_WIDTH - 1;
-                    sar_reg <= '0;
-                    sah_en <= 0;
+                    data_ready = 0;
+                    wait_counter = '0;
+                    bit_index = BIT_WIDTH - 1;
+                    sar_reg = '0;
+                    sah_en = 0;
                 end
 
                 SAMPLE: begin
-                    data_ready <= 0;
-                    sar_reg <= '0;
-                    bit_index <= BIT_WIDTH - 1;
-                    sah_en <= 1; // Close S&H Switch
-                    wait_counter <= wait_counter + 1; // Wait to capture light voltage
+                    data_ready = 0;
+                    sar_reg = '0;
+                    bit_index = BIT_WIDTH - 1;
+                    sah_en = 1; // Close S&H Switch
+                    wait_counter = wait_counter + 1; // Wait to capture light voltage
                 end
 
                 TEST: begin
-                    sah_en <= 0;
-                    wait_counter <= '0; // Reset for reuse in the next state
-                    sar_reg[bit_index] <= 1;
+                    sah_en = 0;
+                    wait_counter = '0; // Reset for reuse in the next state
+                    sar_reg[bit_index] = 1;
                 end
 
                 COMPARE: begin
-                    wait_counter <= wait_counter + 1; // Wait for comparator input
+                    wait_counter = wait_counter + 1; // Wait for comparator input
                 end
 
                 CHECK: begin
-                    if(comp_in == 0) sar_reg[bit_index] <= 0;
+                    if(comp_in == 0) sar_reg[bit_index] = 0;
                 end
 
                 NEXT: begin
-                    if(bit_index > 0) bit_index <= bit_index - 1;
+                    if(bit_index > 0) bit_index = bit_index - 1;
                 end
 
                 DONE: begin
-                    adc_out <= sar_reg;
-                    data_ready <= 1;
-                    wait_counter <= '0; // Reset for potential loop
+                    adc_out = sar_reg;
+                    data_ready = 1;
+                    wait_counter = '0; // Reset for potential loop
                 end
 
                 default: begin
-                    sar_reg <= '0;
-                    bit_index <= BIT_WIDTH - 1;
-                    wait_counter <= '0;
+                    sar_reg = '0;
+                    bit_index = BIT_WIDTH - 1;
+                    wait_counter = '0;
                 end
             endcase
         end
