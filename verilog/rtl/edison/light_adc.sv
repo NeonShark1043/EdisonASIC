@@ -12,7 +12,7 @@ module sar_adc_controller #(
     output logic data_ready
 );
 
-    // State Enconding
+    // State Encoding
     typedef enum logic [2:0]{
         IDLE = 3'b000,
         SAMPLE = 3'b001,
