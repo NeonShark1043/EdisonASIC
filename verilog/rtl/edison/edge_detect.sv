@@ -6,16 +6,24 @@ module edge_detect (
     output logic falling_edge
 );
 
+
 logic signal_d;
+logic signal_e;
+
 
 always_ff @(posedge clk or posedge reset) begin
-    if (reset)
+    if (reset) begin
         signal_d <= 0;
-    else
+        signal_e <= 0;
+    end else begin
         signal_d <= signal_in;
+        signal_e <= signal_d;
+    end
 end
 
-assign rising_edge  =  signal_in & ~signal_d;
-assign falling_edge = ~signal_in &  signal_d;
+
+assign rising_edge  =  signal_d & ~signal_e;
+assign falling_edge = ~signal_d &  signal_e;
+
 
 endmodule
