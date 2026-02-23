@@ -1,5 +1,5 @@
 // SystemVerilog Testbench
-module tb_morse;
+module morse_tb;
 
   logic       clk;
   logic       rst_n;
@@ -7,7 +7,7 @@ module tb_morse;
   logic [3:0] count;
 
   // Instantiate the counter
-  counter dut (
+  morse dut (
     .clk(clk),
     .rst_n(rst_n),
     .enable(enable),
@@ -53,6 +53,8 @@ module tb_morse;
 
   // Monitor output
   initial begin
+    $dumpfile("support/waves/edison/morse.vcd");
+    $dumpvars(0, morse_tb);
     $monitor("Time: %0t | clk: %b | rst_n: %b | enable: %b | count: %d",
              $time, clk, rst_n, enable, count);
   end

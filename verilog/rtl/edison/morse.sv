@@ -8,11 +8,22 @@ module morse (
   output logic [3:0] count
 );
 
+  logic [3:0] count_n;
+
   always_ff @(posedge clk or negedge rst_n) begin
-    if (!rst_n)
+    if (!rst_n) begin
       count <= 4'b0000;
-    else if (enable)
-      count <= count + 1'b1;
+    end else begin
+      count <= count_n;
+    end
+  end
+
+  always_comb begin
+    if (enable) begin
+        count_n = count + 1;
+    end else begin
+        count_n = count;
+    end
   end
 
 endmodule
