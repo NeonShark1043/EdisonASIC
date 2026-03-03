@@ -80,4 +80,37 @@ module morse_fsm #(
         endcase
     end
 
+    // Control Path Logic
+    always_ff @(posedge clk or negedge nrst) begin
+        if(!nrst) begin
+            tree_index   <= 6'd1;
+            mark_counter <= '0;
+            ascii_char   <= '0;
+            char_ready   <= 0;
+        end else begin
+            char_ready <= 0;
+            case(current_state)
+                IDLE: begin
+                    tree_index   <= 6'd1;
+                    mark_counter <= '0;
+                end
+                MARK: begin
+                    mark_counter <= mark_counter + 1;
+                end
+                CLASSIFY: begin
+                    mark_counter <= '0;
+                    if(mark_counter <= DOT_MAX) tree_index <= tree_index << 1;
+                    else                        tree_index <= (tree_index << 1) | 1;
+                end
+                DECODE: begin
+                    ascii_char <= morse_tree[tree_index];
+                end
+                READY: begin
+                    char_ready <= 1;
+                end
+                default: ;
+            endcase
+        end
+    end
+
 endmodule
