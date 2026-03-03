@@ -112,5 +112,3 @@ module morse_fsm #(
             endcase
         end
     end
-
-endmodule
