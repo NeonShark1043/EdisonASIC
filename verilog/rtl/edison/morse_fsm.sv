@@ -147,10 +147,12 @@ module morse_fsm #(
                 READY: begin
                     char_ready <= 1;
                 end
-                default:
+                default: begin
                     tree_index   <= 6'd1;
-                    mark_counter <= '0;
+                    mark_counter <= 16'd0;
                     char_ready   <= 0;
+                end
             endcase
         end
     end
+endmodule
