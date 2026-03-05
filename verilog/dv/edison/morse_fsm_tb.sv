@@ -1,4 +1,4 @@
-module tb_morse_fsm();
+module morse_fsm_tb();
     parameter DOT_MAX    = 10;
     parameter GAP_LIMIT  = 30;
     parameter CLK_PERIOD = 10;
