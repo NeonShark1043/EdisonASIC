@@ -6,7 +6,6 @@ module morse_fsm #(
     input  logic        nrst,
     input  logic        fsm_enable,
     input  logic        light_on,
-    input  logic [15:0] gap_counter,
     output logic [7:0]  ascii_char,
     output logic        char_ready
 );
@@ -24,7 +23,7 @@ module morse_fsm #(
 
     // Internal Registers
     logic [5:0]  tree_index;
-    logic [15:0] mark_counter;
+    logic [15:0] mark_counter, gap_counter;
 
     // Morse Binary Tree ROM (index 1 = root, dot = 2*i, dash = 2*i+1)
     logic [7:0] morse_tree [0:63];
@@ -47,7 +46,9 @@ module morse_fsm #(
         morse_tree[16] = "H";
         morse_tree[17] = "V";
         morse_tree[18] = "F";
+        morse_tree[19] = 8'h00;
         morse_tree[20] = "L";
+        morse_tree[21] = 8'h00;
         morse_tree[22] = "P";
         morse_tree[23] = "J";
         morse_tree[24] = "B";
@@ -56,6 +57,40 @@ module morse_fsm #(
         morse_tree[27] = "Y";
         morse_tree[28] = "Z";
         morse_tree[29] = "Q";
+        morse_tree[30] = 8'h00;
+        morse_tree[31] = 8'h00;
+        morse_tree[32] = "5";
+        morse_tree[33] = "4";
+        morse_tree[34] = 8'h00;
+        morse_tree[35] = "3";
+        morse_tree[36] = 8'h00;
+        morse_tree[37] = 8'h00;
+        morse_tree[38] = 8'h00;
+        morse_tree[39] = "2";
+        morse_tree[40] = 8'h00;
+        morse_tree[41] = 8'h00;
+        morse_tree[42] = 8'h00;
+        morse_tree[43] = 8'h00;
+        morse_tree[44] = 8'h00;
+        morse_tree[45] = 8'h00;
+        morse_tree[46] = 8'h00;
+        morse_tree[47] = "1";
+        morse_tree[48] = 8'h00;    
+        morse_tree[49] = "6";
+        morse_tree[50] = 8'h00;
+        morse_tree[51] = 8'h00;
+        morse_tree[52] = 8'h00;
+        morse_tree[53] = 8'h00;
+        morse_tree[54] = 8'h00;
+        morse_tree[55] = 8'h00;
+        morse_tree[56] = "7";
+        morse_tree[57] = 8'h00;
+        morse_tree[58] = 8'h00;
+        morse_tree[59] = 8'h00;
+        morse_tree[60] = "8";
+        morse_tree[61] = 8'h00;
+        morse_tree[62] = "9";
+        morse_tree[63] = "0";    
     end
 
     // State Transition Logic
@@ -95,12 +130,16 @@ module morse_fsm #(
                     mark_counter <= '0;
                 end
                 MARK: begin
+                    gap_counter <= '0;
                     mark_counter <= mark_counter + 1;
                 end
                 CLASSIFY: begin
                     mark_counter <= '0;
                     if(mark_counter <= DOT_MAX) tree_index <= tree_index << 1;
-                    else                        tree_index <= (tree_index << 1) | 1;
+                    else                        tree_index <= (tree_index << 1) + 1;
+                end
+                GAP: begin
+                    gap_counter <= gap_counter + 1;                   
                 end
                 DECODE: begin
                     ascii_char <= morse_tree[tree_index];
@@ -108,7 +147,10 @@ module morse_fsm #(
                 READY: begin
                     char_ready <= 1;
                 end
-                default: ;
+                default:
+                    tree_index   <= 6'd1;
+                    mark_counter <= '0;
+                    char_ready   <= 0;
             endcase
         end
     end
