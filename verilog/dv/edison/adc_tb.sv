@@ -1,5 +1,5 @@
 // Simulates the analog environment by providing a "mock" comparator signal based on a target analog value
-module tb_sar_adc();
+module adc_tb();
     logic clk, nrst;
     logic start, comp_in;
     logic sah_en, data_ready;
@@ -10,7 +10,7 @@ module tb_sar_adc();
     logic [11:0] target_analog_value;
 
     // Instantiate Design Under Test (DUT)
-    sar_adc_controller #(
+    adc #(
         .BIT_WIDTH(12),
         .WAIT_CYCLES(2) // Shortened for Faster Simulation
     ) dut (.*);
@@ -29,6 +29,8 @@ module tb_sar_adc();
     endtask
 
     initial begin
+    $dumpfile("support/waves/edison/adc.vcd");
+    $dumpvars(0, adc_tb);
         clk = 0;
         nrst = 0;
         target_analog_value = 12'b000;

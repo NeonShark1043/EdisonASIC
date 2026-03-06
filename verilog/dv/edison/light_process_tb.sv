@@ -1,4 +1,4 @@
-module tb_light_process();
+module light_process_tb();
     parameter BIT_WIDTH = 12;
     parameter CLK_PERIOD = 10;
 
@@ -41,6 +41,8 @@ module tb_light_process();
     endtask
 
     initial begin
+    $dumpfile("support/waves/edison/light_process.vcd");
+    $dumpvars(0, light_process_tb);
         nrst = 0; start = 0; comp_in = 0; calibrate = 0;
         #(CLK_PERIOD * 5) nrst = 1;
 

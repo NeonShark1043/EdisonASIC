@@ -1,4 +1,4 @@
-module tb_seven_segment_decoder;
+module seven_segment_decoder_tb;
     reg [7:0] bin;       
     wire [6:0] seg;      
     seven_segment_decoder dut (
@@ -52,6 +52,8 @@ module tb_seven_segment_decoder;
     reg [6:0] exp;
     integer i;
     initial begin
+        $dumpfile("support/waves/edison/seven_segment_decoder.vcd");
+        $dumpvars(0, seven_segment_decoder_tb);
         $display("==========================================");
         $display("   SEVEN SEGMENT DECODER TESTBENCH");
         $display("   Testing 0-9 + A-Z");

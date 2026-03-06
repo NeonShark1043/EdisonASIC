@@ -1,7 +1,7 @@
 `default_nettype none
 `timescale 1ns / 1ps
 
-module tb_led;
+module led_tb;
     logic clk;
     logic n_rst;
     logic [11:0] light_diff;
@@ -20,6 +20,8 @@ module tb_led;
     end
 
     initial begin
+        $dumpfile("support/waves/edison/led.vcd");
+        $dumpvars(0, led_tb);
         // Initialize inputs
         n_rst = 0;
         light_diff = 0;

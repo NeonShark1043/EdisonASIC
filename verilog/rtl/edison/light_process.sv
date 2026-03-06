@@ -1,4 +1,4 @@
-module light_processor #(
+module light_process #(
     parameter BIT_WIDTH = 12,
     parameter AVG_WINDOW = 16, // How many ADC samples are combined to create a single Moving - Must be a power of 2
     parameter HYSTERESIS_THRESHOLD = 50 // Buffer to prevent flickering
