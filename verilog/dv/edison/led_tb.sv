@@ -8,8 +8,6 @@ module led_tb;
     logic [9:0] led;
 
     led dut (
-        .clk(clk),
-        .n_rst(n_rst),
         .light_diff(light_diff),
         .led(led)
     );
