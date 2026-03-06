@@ -1,4 +1,4 @@
-module light_process_tb();
+module light_system_tb();
     parameter BIT_WIDTH = 12;
     parameter CLK_PERIOD = 10;
 
@@ -8,8 +8,8 @@ module light_process_tb();
     logic [BIT_WIDTH-1:0] dac_out, adc_out, light_diff, light_led;
 
     // Module Instantiations
-    sar_adc_controller #(.BIT_WIDTH, 4) u_adc (.*);
-    light_processor #(.BIT_WIDTH, 16, 50) u_processor (.*);
+    adc #(.BIT_WIDTH, 4) u_adc (.*);
+    light_process #(.BIT_WIDTH, 16, 50) u_processor (.*);
 
     // Clock Generation
     initial clk = 0;
