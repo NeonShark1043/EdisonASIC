@@ -3,7 +3,6 @@
 
 module led_tb;
     logic clk;
-    logic n_rst;
     logic [11:0] light_diff;
     logic [9:0] led;
 
@@ -21,10 +20,8 @@ module led_tb;
         $dumpfile("support/waves/edison/led.vcd");
         $dumpvars(0, led_tb);
         // Initialize inputs
-        n_rst = 0;
         light_diff = 0;
         #10;
-        n_rst = 1;
 
         // Test cases
         // Below 10: 0 LEDs
