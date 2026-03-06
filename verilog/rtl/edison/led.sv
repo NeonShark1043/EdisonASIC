@@ -1,7 +1,7 @@
 `default_nettype none
+`timescale 1ns / 1ps
 module led
 (
-    input  logic clk, n_rst,
     input  logic [11:0] light_diff,   
     output logic [9:0] led
 );
@@ -21,3 +21,4 @@ always_comb begin
 end
 
 endmodule
+
