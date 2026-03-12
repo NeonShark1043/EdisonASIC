@@ -120,6 +120,7 @@ module morse_fsm #(
         if(!nrst) begin
             tree_index   <= 6'd1;
             mark_counter <= '0;
+            gap_counter  <= '0;
             ascii_char   <= '0;
             char_ready   <= 0;
         end else begin
