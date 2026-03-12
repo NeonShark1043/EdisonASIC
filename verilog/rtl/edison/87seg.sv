@@ -33,6 +33,7 @@ module top (
     digits[2] = {4'b0, lux_hundreds};
     digits[3] = {4'b0, lux_thousands};
 
+
   // Drive all 8 displays (concatenating DP bit 0 + 7-segment pattern)
   assign ss0 = {1'b0, seven_seg(digits[0])};
   assign ss1 = {1'b0, seven_seg(digits[1])};
