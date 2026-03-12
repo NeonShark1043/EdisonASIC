@@ -13,26 +13,16 @@ module top (
   output logic txclk, rxclk,
   input  logic txready, rxready
 );
-
-  logic [7:0] digits [7:0];
-    lux_converter friend_inst (
-    .adc_out       (pb[11:0]), 
-    .seg_ones      (lux_ones),
-    .seg_tens      (lux_tens),
-    .seg_hundreds  (lux_hundreds),
-    .seg_thousands (lux_thousands)
-  );
-
-  always_comb begin
-    // Default all to blank (127)
-    for (int i = 0; i < 8; i++) digits[i] = 8'd127;
-
-    // 3. Map friend's outputs to your displays (Right side)
-    digits[0] = {4'b0, lux_ones};
-    digits[1] = {4'b0, lux_tens};
-    digits[2] = {4'b0, lux_hundreds};
-    digits[3] = {4'b0, lux_thousands};
-
+    logic [7:0] digits [7:0];
+    always_comb begin
+    // Initialize all to blank
+    for (int i = 0; i < 8; i++) begin
+        digits[i] = 8'd127; 
+    end
+    
+    // Now you can assign values to your array elements
+    digits[7] = 8'd21; 
+  end
   // Drive all 8 displays (concatenating DP bit 0 + 7-segment pattern)
   assign ss0 = {1'b0, seven_seg(digits[0])};
   assign ss1 = {1'b0, seven_seg(digits[1])};
