@@ -1,4 +1,11 @@
 `timescale 1ns / 1ps
+/* SoC Button Controls
+1) Kickstart SoC: Hold Push Button
+2) Zero Processing Thresholds: Press Blank Button
+3) Toggle Output Mode: Hold Blank and Press Push
+4) Shutdown SoC: Hold Push Button again
+*/
+
 module soc_button #(
     parameter HOLD_MAX = 10
 )(
@@ -13,9 +20,8 @@ module soc_button #(
     logic [3:0] hold_counter;
     logic push_rise, push_fall;
     logic blank_rise, blank_fall;
-    logic rst;
 
-    edge_detect push_edge (
+    edge_detector push_edge (
         .reset(!nrst),
         .signal_in(push_button),
         .rising_edge(push_rise),
@@ -23,7 +29,7 @@ module soc_button #(
         .*
     );
 
-    edge_detect blank_edge (
+    edge_detector blank_edge (
         .reset(!nrst),
         .signal_in(blank_button),
         .rising_edge(blank_rise),
@@ -37,14 +43,15 @@ module soc_button #(
     // Hence, Toggle Output Mode when one button is PRESSED while the other is HELD
     always_ff @(posedge clk or negedge nrst) begin
         if(!nrst) seg_mode <= 0;
-        else if((push_button && blank_rise) || (blank_button && push_rise)) seg_mode <= ~seg_mode;
+        else if(blank_button && push_rise) seg_mode <= ~seg_mode;
     end
 
     // State Encoding
     typedef enum logic [1:0] {
         IDLE = 2'b00,
         HOLD = 2'b01,
-        PULSE = 2'b10
+        RESTART = 2'b10,
+        RELEASE = 2'b11
     } state_t;
     state_t current_state, next_state;
 
@@ -63,8 +70,9 @@ module soc_button #(
         case(current_state)
             IDLE: if(push_button) next_state = HOLD;
             HOLD: if(!push_button) next_state = IDLE;
-            else if(hold_counter >= 4'(HOLD_MAX)) next_state = PULSE;
-            PULSE: if(!push_button) next_state = IDLE; // Wait for release to prevent re-triggering
+            else if(hold_counter >= 4'(HOLD_MAX)) next_state = RESTART;
+            RESTART: next_state = RELEASE;
+            RELEASE: if(!push_button) next_state = IDLE; // Wait for release to prevent re-triggering
             default: next_state = IDLE;
         endcase
     end
@@ -75,25 +83,16 @@ module soc_button #(
             hold_counter <= '0; start <= 0;
         end else begin
             case(current_state)
-                IDLE: begin
+                IDLE: hold_counter <= '0;
+                HOLD: hold_counter <= hold_counter + 1'b1;
+                RESTART: begin
+                    start <= ~start; // Turn ON if OFF, turn OFF if ON
+                    // Note: Remove resetting start in other states because start must stay on HIGH so the FSMs can conduct their continuous operations, else they would reset numerous times.
                     hold_counter <= '0;
-                    start <= 0;
                 end
-                HOLD: begin
-                    if(hold_counter < 4'hF) hold_counter <= hold_counter + 1'b1;
-                    start <= 0;
-                end
-                PULSE: begin
-                    if(hold_counter != 4'hF) begin
-                        start <= 1;
-                        hold_counter <= 4'hF; // Check for max counter to pulse for only one cycle
-                        // Else, start would stay high as long as the button is held (stuck in PULSE). This would cause the FSMs to reset numerous times
-                    end else begin
-                        start <= 0;
-                    end
-                end
+                RELEASE: hold_counter <= '0;
                 default: begin
-                    hold_counter <= '0;
+                    hold_counter <= '0; 
                     start <= 0;
                 end
             endcase
