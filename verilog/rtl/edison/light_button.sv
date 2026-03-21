@@ -1,4 +1,28 @@
 `timescale 1ns / 1ps
+module edge_detector(
+    input logic clk,
+    input logic reset,
+    input logic signal_in,
+    output logic rising_edge,
+    output logic falling_edge
+);
+    logic signal_d, signal_e;
+
+    always_ff @(posedge clk or posedge reset) begin
+        if(reset) begin
+            signal_d <= 0;
+            signal_e <= 0;
+        end else begin
+            signal_d <= signal_in;
+            signal_e <= signal_d;
+        end
+    end
+
+    assign rising_edge = signal_d & ~signal_e;
+    assign falling_edge = ~signal_d & signal_e;
+
+endmodule
+
 /* SoC Button Controls
 1) Kickstart SoC: Hold Push Button
 2) Zero Processing Thresholds: Press Blank Button
@@ -87,7 +111,8 @@ module soc_button #(
                 HOLD: hold_counter <= hold_counter + 1'b1;
                 RESTART: begin
                     start <= ~start; // Turn ON if OFF, turn OFF if ON
-                    // Note: Remove resetting start in other states because start must stay on HIGH so the FSMs can conduct their continuous operations, else they would reset numerous times.
+                    // Note: Remove resetting start in other states because start must stay on HIGH
+                    // So that the FSMs can conduct their continuous operations, else they would reset numerous times.
                     hold_counter <= '0;
                 end
                 RELEASE: hold_counter <= '0;
