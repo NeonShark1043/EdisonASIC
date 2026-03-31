@@ -1,23 +1,25 @@
-module lux_converter#(
+`timescale 1ns / 1ps
+module lux_converter #(
     parameter BIT_WIDTH = 12,
+    parameter BCD_WIDTH = 4,
     parameter AVG_WINDOW = 16 // How many ADC samples are combined to create a single Moving - Must be a power of 2
 )(
     input logic clk,
     input logic nrst,
     input logic [BIT_WIDTH-1:0] adc_out, // Raw 12-bit value (voltage reading)
     input logic data_ready,
-    output logic [3:0] seg_ones, // Decimal 1s place
-    output logic [3:0] seg_tens, // Decimal 10s place
-    output logic [3:0] seg_hundreds, // Decimal 100s place
-    output logic [3:0] seg_thousands // Decimal 1000s place
+    output logic [BCD_WIDTH-1:0] seg_ones, // Decimal 1s place
+    output logic [BCD_WIDTH-1:0] seg_tens, // Decimal 10s place
+    output logic [BCD_WIDTH-1:0] seg_hundreds, // Decimal 100s place
+    output logic [BCD_WIDTH-1:0] seg_thousands // Decimal 1000s place
 );
     logic [BIT_WIDTH+3:0] sum_acc;
-    logic [3:0] sample_num;
+    logic [BCD_WIDTH-1:0] sample_num;
     logic [BIT_WIDTH-1:0] avg_acc;
-    logic [BIT_WIDTH+11:0] lux_value; // 23-bit to prevent overflow during the multiplication step (312!)
+    logic [23:0] lux_value; // 24-bit to prevent overflow during the multiplication step (312!)
     logic [BIT_WIDTH+1:0] lux_display; // Lux value after shift
 
-    // Moving Average Filter (same method implemented in Light Processor)
+    // Block Average Window
     always_ff @(posedge clk or negedge nrst) begin
         if(!nrst) begin
             avg_acc <= '0;
@@ -40,13 +42,13 @@ module lux_converter#(
         // Lux = ADC * [V / (4095 * R * S)]
         // In schematics, set power supply 3.3V, photodiode sensivity 0.05µA/Lux, and thus feedback resistor 6.8kΩ
         // Therefore, Lux = ADC * 2.37 = ADC * (K / 2^Shift) = (ADC * K) >> Shift
-        lux_value = 24'(avg_acc) * 24'd312;
-        lux_display = 14'(lux_value >> 7); // 312 / 2^7 = 2.44
+        lux_value = 24'(avg_acc) * 24'd625;
+        lux_display = 14'(lux_value >> 8); // 625 / 2^8 = 2.44
         // Binary to BCD (Binary Coded Decimal) or Decimal Split
         // Cast the 32-bit integer result to 4 bits to satisfy the linter
-        seg_thousands = 4'((32'(lux_display) / 1000) % 10);
-        seg_hundreds = 4'((32'(lux_display) / 100) % 10);
-        seg_tens = 4'((32'(lux_display) / 10) % 10);
-        seg_ones = 4'(32'(lux_display) % 10);
+        seg_thousands = BCD_WIDTH'((32'(lux_display) / 1000) % 10);
+        seg_hundreds = BCD_WIDTH'((32'(lux_display) / 100) % 10);
+        seg_tens = BCD_WIDTH'((32'(lux_display) / 10) % 10);
+        seg_ones = BCD_WIDTH'(32'(lux_display) % 10);
     end
 endmodule
