@@ -72,7 +72,7 @@ module top (
       8'd33: seven_seg = 7'b1110111; // X
       8'd34: seven_seg = 7'b1101110; // Y
       8'd35: seven_seg = 7'b1001011; // Z
-      default: seven_seg = 7'b0000000;
+      default: seven_seg = 7'b1010011;
     endcase
   endfunction
 
