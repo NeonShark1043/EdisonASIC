@@ -3,7 +3,8 @@ module morse_decoder #(
     parameter CLK_FREQ = 100000000, // 100 MHz SoC Clock - all counters reset every 1,000,000 cycles
     parameter TICK_MS = 10, // 1 tick = 10 ms resolution for counters
     parameter DOT_MAX = 20, // < 200 ms is a dot (.) and > 210 ms is a dash (_)
-    parameter GAP_LIMIT = 60 // > 600 ms of silence trigges DECODE
+    parameter GAP_MAX = 60, // > 600 ms of silence trigges DECODE
+    parameter SPACE_MAX = 140 // // > 1400 ms for letter space
 )(
     input logic clk,
     input logic nrst,
@@ -20,7 +21,8 @@ module morse_decoder #(
         CLASSIFY = 3'b010, // Determining if the Light Pulse is a Dot or Dash
         GAP = 3'b011, // Measuring silence between pulses
         DECODE = 3'b100, // Matching sequences to ASCII
-        READY = 3'b101 // Pulsing Output
+        READY = 3'b101, // Pulsing Output
+        SPACE = 3'b110 // Detecting Word Gaps
     } state_t;
 
     state_t current_state, next_state;
@@ -92,7 +94,7 @@ module morse_decoder #(
         morse_tree[34] = 8'h00; // Null (...-.)
         morse_tree[36] = 8'h00; // Null (..-..)
         morse_tree[37] = 8'h00; // Null (..-.-)
-        morse_tree[38] = 8'h00; // Null (..-. .)
+        morse_tree[38] = 8'h00; // Null (..-..)
         morse_tree[40] = 8'h00; // Null (.-...)
         morse_tree[41] = 8'h00; // Null (.-..-)
         morse_tree[42] = 8'h00; // Null (.-.-.)
@@ -138,12 +140,14 @@ module morse_decoder #(
         if(!start) next_state = IDLE;
         case(current_state)
             IDLE: if(light_on) next_state = MARK;
+            else if(32'(gap_counter) >= SPACE_MAX) next_state = SPACE;
             MARK: if(!light_on) next_state = CLASSIFY;
             CLASSIFY: next_state = GAP;
             GAP: if(light_on) next_state = MARK;
-            else if(32'(gap_counter) >= GAP_LIMIT) next_state = DECODE;
+            else if(32'(gap_counter) >= GAP_MAX) next_state = DECODE;
             DECODE: next_state = READY;
             READY: next_state = IDLE;
+            SPACE: next_state = IDLE;
             default: next_state = IDLE;
         endcase
     end
@@ -160,7 +164,7 @@ module morse_decoder #(
                     char_ready <= 0;
                     tree_index <= 6'd1;
                     mark_counter <= 0;
-                    gap_counter <= 0;
+                    if(tick_en) gap_counter <= gap_counter + 1;
                 end
 
                 MARK: begin
@@ -186,10 +190,17 @@ module morse_decoder #(
 
                 DECODE: begin
                     ascii_char <= morse_tree[tree_index];
+                    gap_counter <= 0;
                 end
 
                 READY: begin
                     char_ready <= 1;
+                end
+
+                SPACE: begin
+                    ascii_char <= 8'd32; // ASCII for Blankspace
+                    char_ready <= 1;
+                    gap_counter <= 0; // Reset to prevent double spacing
                 end
 
                 default: begin
