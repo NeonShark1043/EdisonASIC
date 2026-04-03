@@ -141,7 +141,8 @@ module morse_decoder #(
         case(current_state)
             IDLE: if(light_on) next_state = MARK;
             else if(32'(gap_counter) >= SPACE_MAX) next_state = SPACE;
-            MARK: if(!light_on) next_state = CLASSIFY;
+            MARK: if(!light_on && mark_counter > 0) next_state = CLASSIFY;
+            else next_state = MARK;
             CLASSIFY: next_state = GAP;
             GAP: if(light_on) next_state = MARK;
             else if(32'(gap_counter) >= GAP_MAX) next_state = DECODE;
