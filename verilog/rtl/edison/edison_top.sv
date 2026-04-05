@@ -5,12 +5,12 @@ module edison_top #(
     parameter SSD_WIDTH = 8, // For each eight of 7-Segment Display
     parameter HOLD_MAX = 10, // Time requirement for button hold and register wait
     parameter AVG_WINDOW = 16, // The number of samples to average over in Light Processing
-    parameter CLK_FREQ = 3125, // Clock frequency for Morse Decoder
-    parameter DOT_MAX = 8, // Time duration for Morse Code dot (<= 20) and dash (> 20)
-    parameter GAP_MAX = 140, // Time duration for Morse Code short gap (<= 60) and long gap (>= 60)
-    parameter SPACE_MAX = 190
+    parameter CLK_FREQ = 1_000_000, // Clock frequency for Morse Decoder
+    parameter DOT_MAX = 200, // Time duration for Morse Code dot (<= 20) and dash (> 20)
+    parameter GAP_MAX = 300, // Time duration for Morse Code short gap (<= 60) and long gap (>= 60)
+    parameter SPACE_MAX = 500
 )(
-    input logic hz100, reset, // Switch from hz100 to clk (?)
+    input logic clk, nrst, // Switch from hz100 to clk (?)
     input logic [20:0] pb, // Physical Inputs => pb[0]: Push, pb[1]: Blank, pb[2]: Comp_in
     output logic [SSD_WIDTH-1:0] left, right, // Logic vectors hard-wired to physical LED
     output logic [SSD_WIDTH-1:0] ss7, ss6, ss5, ss4, ss3, ss2, ss1, ss0,
@@ -23,7 +23,6 @@ module edison_top #(
     input logic txready, rxready
 );
     // Internal Wires
-    logic clk, nrst;
     logic start, calibrate, seg_mode;
     logic [BIT_WIDTH-1:0] dac_out, adc_out, light_diff;
     logic data_ready, char_ready, sah_en, light_on;

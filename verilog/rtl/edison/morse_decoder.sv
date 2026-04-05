@@ -2,9 +2,9 @@
 module morse_decoder #(
     parameter CLK_FREQ = 100000000, // 100 MHz SoC Clock - all counters reset every 1,000,000 cycles
     parameter TICK_MS = 10, // 1 tick = 10 ms resolution for counters
-    parameter DOT_MAX = 20, // < 200 ms is a dot (.) and > 210 ms is a dash (_)
-    parameter GAP_MAX = 60, // > 600 ms of silence trigges DECODE
-    parameter SPACE_MAX = 140 // // > 1400 ms for letter space
+    parameter DOT_MAX = 200, // < 2000 ms is a dot (.) and > 2100 ms is a dash (_)
+    parameter GAP_MAX = 300, // > 3000 ms of silence trigges DECODE
+    parameter SPACE_MAX = 500 // // > 5000 ms for letter space
 )(
     input logic clk,
     input logic nrst,
@@ -56,7 +56,7 @@ module morse_decoder #(
         morse_tree[9] = 8'h55; // U (..-)
         morse_tree[10] = 8'h52; // R (.-.)
         morse_tree[11] = 8'h57; // W (.--)
-        morse_tree[12] = 8'h44; // D (-..            $display("test");)
+        morse_tree[12] = 8'h44; // D (-..)
         morse_tree[13] = 8'h4B; // K (-.-)
         morse_tree[14] = 8'h47; // G (--.)
         morse_tree[15] = 8'h4F; // O (---)
