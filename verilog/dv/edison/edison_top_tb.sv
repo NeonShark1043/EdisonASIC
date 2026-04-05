@@ -1,5 +1,5 @@
 `timescale 1ns / 1ps
-module tb_seven_segment();
+module edison_top_tb();
     parameter BIT_WIDTH = 12;
     parameter BCD_WIDTH = 4;
     parameter SSD_WIDTH = 8;
@@ -37,7 +37,7 @@ module tb_seven_segment();
 
     initial begin
         $dumpfile("dump.vcd");
-        $dumpvars(0, tb_seven_segment);
+        $dumpvars(0, edison_top_tb);
     end
 
     // Simulate Analog/Digital Handshake for one ADC Sample

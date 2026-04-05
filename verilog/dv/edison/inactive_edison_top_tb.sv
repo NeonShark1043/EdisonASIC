@@ -1,5 +1,5 @@
 `timescale 1ns / 1ps
-module tb_edison_top();
+module edison_top_tb();
     parameter BIT_WIDTH = 12;
     parameter CLK_PERIOD = 10; // 100 MHz clock
     parameter DOT_LIM = 10;

@@ -1,6 +1,6 @@
 module edge_detector (
     input  logic clk,
-    input  logic reset,
+    input  logic nrst,
     input  logic signal_in,
     output logic rising_edge,
     output logic falling_edge
@@ -9,8 +9,8 @@ module edge_detector (
 logic signal_d;
 logic signal_e;
 
-always_ff @(posedge clk or posedge reset) begin
-    if (reset) begin
+always_ff @(posedge clk or negedge nrst) begin
+    if (!nrst) begin
         signal_d <= 0;
         signal_e <= 0;
     end else begin

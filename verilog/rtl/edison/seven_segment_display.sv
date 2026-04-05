@@ -56,15 +56,26 @@ module seven_segment_display #(
     end
 
     // Drive Displays
-    always_ff @(posedge clk) begin
-        ss0 <= {1'b0, seven_seg(seg_digits[0])};
-        ss1 <= {1'b0, seven_seg(seg_digits[1])};
-        ss2 <= {1'b0, seven_seg(seg_digits[2])};
-        ss3 <= {1'b0, seven_seg(seg_digits[3])};
-        ss4 <= {1'b0, seven_seg(seg_digits[4])};
-        ss5 <= {1'b0, seven_seg(seg_digits[5])};
-        ss6 <= {1'b0, seven_seg(seg_digits[6])};
-        ss7 <= {1'b0, seven_seg(seg_digits[7])};
+    always_ff @(posedge clk, negedge nrst) begin
+        if (!nrst) begin
+            ss0 <= 0;
+            ss1 <= 0;
+            ss2 <= 0;
+            ss3 <= 0;
+            ss4 <= 0;
+            ss5 <= 0;
+            ss6 <= 0;
+            ss7 <= 0;
+        end else begin
+            ss0 <= {1'b0, seven_seg(seg_digits[0])};
+            ss1 <= {1'b0, seven_seg(seg_digits[1])};
+            ss2 <= {1'b0, seven_seg(seg_digits[2])};
+            ss3 <= {1'b0, seven_seg(seg_digits[3])};
+            ss4 <= {1'b0, seven_seg(seg_digits[4])};
+            ss5 <= {1'b0, seven_seg(seg_digits[5])};
+            ss6 <= {1'b0, seven_seg(seg_digits[6])};
+            ss7 <= {1'b0, seven_seg(seg_digits[7])};
+        end
     end
 
     // Extended Decoder Function

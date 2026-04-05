@@ -22,7 +22,7 @@ module soc_button #(
     logic blank_rise, blank_fall;
 
     edge_detector push_edge (
-        .reset(!nrst),
+        .nrst(nrst),
         .signal_in(push_button),
         .rising_edge(push_rise),
         .falling_edge(push_fall),
@@ -30,7 +30,7 @@ module soc_button #(
     );
 
     edge_detector blank_edge (
-        .reset(!nrst),
+        .nrst(nrst),
         .signal_in(blank_button),
         .rising_edge(blank_rise),
         .falling_edge(blank_fall),
