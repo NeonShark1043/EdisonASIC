@@ -1,5 +1,5 @@
 // Simulates the analog environment by providing a "mock" comparator signal based on a target analog value
-module tb_sar_adc();
+module sar_adc_controller_tb();
     logic clk, nrst;
     logic start, comp_in;
     logic sah_en, data_ready;
@@ -27,6 +27,12 @@ module tb_sar_adc();
         $display("\nTime | Index | DAC Guess | Comp Result | SAR Reg (Bin)");
         $display("-----|-------|-----------|-------------|-----------------");
     endtask
+
+    // GTKWave Dump
+    initial begin
+        $dumpfile("support/waves/edison/sar_adc_controller.vcd");
+        $dumpvars(0, sar_adc_controller_tb);
+    end
 
     initial begin
         clk = 0;

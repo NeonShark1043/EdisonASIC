@@ -56,7 +56,7 @@ module morse_decoder #(
         morse_tree[9] = 8'h55; // U (..-)
         morse_tree[10] = 8'h52; // R (.-.)
         morse_tree[11] = 8'h57; // W (.--)
-        morse_tree[12] = 8'h44; // D (-..)
+        morse_tree[12] = 8'h44; // D (-..            $display("test");)
         morse_tree[13] = 8'h4B; // K (-.-)
         morse_tree[14] = 8'h47; // G (--.)
         morse_tree[15] = 8'h4F; // O (---)

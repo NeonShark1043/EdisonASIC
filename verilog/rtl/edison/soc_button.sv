@@ -37,7 +37,7 @@ module soc_button #(
         .*
     );
 
-    assign calibrate = blank_rise;
+    assign calibrate = blank_button;
 
     // Note: It would be physically hard to accurately press both buttons and detect their rising edges at the same clock cycle
     // Hence, Toggle Output Mode when one button is PRESSED while the other is HELD

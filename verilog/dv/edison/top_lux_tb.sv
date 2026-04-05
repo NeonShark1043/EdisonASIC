@@ -1,26 +1,29 @@
-module tb_dd_lux();
-    parameter BIT_WIDTH = 12;
-    parameter BCD_WIDTH = 4;
+module top_lux_tb ();
+    parameter BIT_WIDTH  = 12;
+    parameter BCD_WIDTH  = 4;
     parameter CLK_PERIOD = 10;
-    parameter HOLD_MAX = 10;
+    parameter HOLD_MAX   = 10;
     parameter AVG_WINDOW = 16;
 
     logic clk, nrst;
-    wire start;
-    logic push_button, blank_button, calibrate, seg_mode;
+    wire  start;
+    logic push_button, blank_button;
     logic comp_in, sah_en, data_ready;
     logic [BIT_WIDTH-1:0] dac_out, adc_out;
     logic [BCD_WIDTH-1:0] seg_ones, seg_tens, seg_hundreds, seg_thousands;
 
-    soc_button #(HOLD_MAX) u_button (.*);
-    sar_adc_controller #(BIT_WIDTH, 4) u_adc (.*);
-    lux_converter #(BIT_WIDTH, BCD_WIDTH, AVG_WINDOW) u_lux (.*);
+    top_lux #(
+        .BIT_WIDTH(BIT_WIDTH),
+        .BCD_WIDTH(BCD_WIDTH),
+        .HOLD_MAX(HOLD_MAX),
+        .AVG_WINDOW(AVG_WINDOW)
+    ) u_top (.*);
 
     // Clock Generation
     initial clk = 0;
     always #(CLK_PERIOD / 2) clk = ~clk;
 
-    task restart_button(input int start_check); 
+    task restart_button(input int start_check);
         // Call the first time to set start HIGH, call the second time to set start LOW
         push_button = 1; repeat(HOLD_MAX * 3) @(posedge clk);
         if(start_check == 1) begin
@@ -40,16 +43,14 @@ module tb_dd_lux();
             comp_in = (target_analog_value >= dac_out); // Binary Search Logic
         end
         @(posedge clk); // Allow data_ready to pulse
-        // $display("[ADC] Completed Output %d", adc_out);
     endtask
 
     task test_light_level(input [BIT_WIDTH-1:0] target_analog_value);
         $display("[ADC] Received Input %d", target_analog_value);
         repeat(AVG_WINDOW * 2) begin
             simulate_adc_cycle(target_analog_value);
-            // $display("[LUX] Sum Accumulation: %d", u_lux.sum_acc);
         end
-        $display("[LUX] Average Accumulation: %d", u_lux.avg_acc);
+        $display("[LUX] Average Accumulation: %d", u_top.u_lux.avg_acc);
         $display("Segment Display: [%d%d%d%d] Lux\n", seg_thousands, seg_hundreds, seg_tens, seg_ones);
     endtask
 
@@ -60,8 +61,8 @@ module tb_dd_lux();
     endtask
 
     initial begin
-        $dumpfile("dump.vcd");
-        $dumpvars(0, tb_dd_lux);
+        $dumpfile("support/waves/edison/top_lux.vcd");
+        $dumpvars(0, top_lux_tb);
         reset_signals();
 
         restart_button(1);

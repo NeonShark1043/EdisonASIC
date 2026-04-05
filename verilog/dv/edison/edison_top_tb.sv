@@ -46,7 +46,7 @@ module edison_top_tb();
         //target_comparator = target_analog_value;
         while(!data_ready) begin // Stop when it hits DONE
             @(posedge clk);
-            comp_in = (target_analog_value >= dac_out); // Binary Search Logic
+            comp_in = (target_analog_value >= dac_out); // Binary Search Logicer
         end
         @(posedge clk); // Allow data_ready to pulse
     endtask
@@ -67,7 +67,9 @@ module edison_top_tb();
     // Send Silence (Gap)
     task send_gap(input int num_ticks);
         // Provide a few "LIGHT OFF" cycles to let FSM move MARK -> CLASSIFY -> GAP
-        while(u_decoder.current_state != 3'b011) simulate_adc_cycle(12'd900);
+        while(u_decoder.current_state != 3'b011) begin
+            simulate_adc_cycle(12'd900);
+        end
         // while(light_on) simulate_adc_cycle(12'd900);
         $display("[SIM] Sending Gap. Target: %0d", num_ticks);
 
@@ -141,10 +143,10 @@ module edison_top_tb();
 
         // Setting Threshold for Processor
         $display("Starting Auto-Calibration...");
-        blank_button = 1; repeat(HOLD_MAX) @(posedge clk); // Turn on calibrate mode
+        blank_button = 1; @(posedge clk); // Turn on calibrate mode
         if(calibrate) repeat(40) simulate_adc_cycle(12'd1000); // Ambient Room Light
         blank_button = 0; repeat(5) @(posedge clk);
-        blank_button = 1; repeat(HOLD_MAX) @(posedge clk); // Turn off calibrate mode
+        blank_button = 1; @(posedge clk); // Turn off calibrate mode
         blank_button = 0; repeat(5) @(posedge clk);
         if(!calibrate) $display("Threshold Set: %d", u_processor.threshold_set);
 
@@ -159,6 +161,7 @@ module edison_top_tb();
         $display("Test Level 2 - Character 'E' (.)");
         send_morse(DOT_LIM); // Requires one Dot - 10 ticks (100 ms)
         send_gap(LONG_GAP_LIM); // Long Gap - 70 ticks (700 ms)
+        $display("print");
 
         $display("Test Level 2 - Character 'T' (-)");
         send_morse(DASH_LIM); // Requires one Dash - 30 ticks (300 ms)
