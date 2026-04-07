@@ -7,7 +7,7 @@ module spi_serializer #(
     output logic mosi, // Data bitstream
     output logic shift_clock,
     output logic seri_ready // Active-low signal to latch the data at the end of data transfer
-)
+);
     logic [SPI_WIDTH-1:0] shift_register;
     logic [6:0] bit_count; // Counts 0 to 71
     logic [3:0] clk_count;
