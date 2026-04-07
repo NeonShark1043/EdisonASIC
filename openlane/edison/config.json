@@ -37,10 +37,10 @@
 
     "//": "physical size",
     "FP_SIZING": "absolute",
-    "DIE_AREA": "0 0 160 100",
+    "DIE_AREA": "0 0 250 200",
 
     "//": "others",
-    "PL_TARGET_DENSITY_PCT": 60,
+    "PL_TARGET_DENSITY_PCT": 64,
     "PL_RESIZER_HOLD_SLACK_MARGIN": 0.1,
     "GRT_RESIZER_HOLD_SLACK_MARGIN": 0.05,
     "RUN_LINTER": 1,
