@@ -2,9 +2,15 @@
     "//": "Basics",
     "DESIGN_NAME": "edison",
     "VERILOG_FILES": [
-        "dir::../../verilog/rtl/edison/project.v",
-        "dir::../../verilog/rtl/edison/top.sv",
-        "dir::../../verilog/rtl/edison/src1.sv"
+        "dir::../../verilog/rtl/edison/edison_top.sv",
+        "dir::../../verilog/rtl/edison/edge_detector.sv",
+        "dir::../../verilog/rtl/edison/soc_button.sv",
+        "dir::../../verilog/rtl/edison/sar_adc_controller.sv",
+        "dir::../../verilog/rtl/edison/light_processor.sv",
+        "dir::../../verilog/rtl/edison/lux_converter.sv",
+        "dir::../../verilog/rtl/edison/morse_decoder.sv",
+        "dir::../../verilog/rtl/edison/light_leds.sv",
+        "dir::../../verilog/rtl/edison/seven_segment_display.sv"
     ],
     "CLOCK_PERIOD": 25,
     "CLOCK_PORT": "clk",

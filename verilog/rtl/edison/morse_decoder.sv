@@ -1,4 +1,3 @@
-`timescale 1ns / 1ps
 module morse_decoder #(
     parameter CLK_FREQ = 100000000, // 100 MHz SoC Clock - all counters reset every 1,000,000 cycles
     parameter TICK_MS = 10, // 1 tick = 10 ms resolution for counters

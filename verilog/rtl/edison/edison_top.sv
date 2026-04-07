@@ -1,4 +1,3 @@
-`timescale 1ns / 1ps
 module edison_top #(
     parameter BIT_WIDTH = 12, // For digital readings of light in ADC
     parameter BCD_WIDTH = 4, // For each digit under BCD form in Lux Converter and 7-Segment

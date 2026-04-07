@@ -1,4 +1,3 @@
-`timescale 1ns / 1ps
 module lux_converter #(
     parameter BIT_WIDTH = 12,
     parameter BCD_WIDTH = 4,

@@ -1,4 +1,3 @@
-`default_nettype none
 module led_bar_driver(
     input  logic clk, nrst,
     input  logic [11:0] light_diff,   

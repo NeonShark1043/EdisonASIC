@@ -19,7 +19,7 @@ export LD_LIBRARY_PATH := /home/shay/a/ece270/lib:$(LD_LIBRARY_PATH)
 PROJECT = edison
 
 # "in-shell" (NanoHub) or "out-of-shell" otherwise
-NIX_MODE := out-of-shell
+NIX_MODE := in-shell
 
 YOSYS=yosys
 NEXTPNR=nextpnr-ice40

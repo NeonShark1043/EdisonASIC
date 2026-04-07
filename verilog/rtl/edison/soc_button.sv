@@ -1,4 +1,3 @@
-`timescale 1ns / 1ps
 /* SoC Button Controls
 1) Kickstart SoC: Hold Push Button
 2) Zero Processing Thresholds: Press Blank Button
