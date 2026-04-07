@@ -18,7 +18,7 @@ module spi_serializer #(
             clk_count <= 0;
             shift_clock <= 0;
         end else begin
-            if(clk_count = (CLK_DIV/2 - 1)) begin
+            if(clk_count == (CLK_DIV/2 - 1)) begin
                 clk_count <= 0;
                 shift_clock <= ~shift_clock;
             end else begin
