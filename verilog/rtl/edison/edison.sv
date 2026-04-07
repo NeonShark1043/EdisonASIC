@@ -1,4 +1,4 @@
-module edison_top #(
+module edison #(
     parameter BIT_WIDTH = 12, // For digital readings of light in ADC
     parameter BCD_WIDTH = 4, // For each digit under BCD form in Lux Converter and 7-Segment
     parameter SSD_WIDTH = 8, // For each eight of 7-Segment Display

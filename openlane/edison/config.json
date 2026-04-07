@@ -2,7 +2,7 @@
     "//": "Basics",
     "DESIGN_NAME": "edison",
     "VERILOG_FILES": [
-        "dir::../../verilog/rtl/edison/edison_top.sv",
+        "dir::../../verilog/rtl/edison/edison.sv",
         "dir::../../verilog/rtl/edison/edge_detector.sv",
         "dir::../../verilog/rtl/edison/soc_button.sv",
         "dir::../../verilog/rtl/edison/sar_adc_controller.sv",
