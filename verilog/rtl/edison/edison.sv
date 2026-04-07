@@ -2,22 +2,23 @@ module edison #( // Clean for synthesis
     parameter BIT_WIDTH = 12, // For digital readings of light in ADC
     parameter BCD_WIDTH = 4, // For each digit under BCD form in Lux Converter and 7-Segment
     parameter SSD_WIDTH = 8, // For each eight of 7-Segment Display
+    parameter SPI_WIDTH = 72, // For serializer takes in total bits of top outputs
     parameter HOLD_MAX = 10, // Time requirement for button hold and register wait
     parameter AVG_WINDOW = 16, // The number of samples to average over in Light Processing
     parameter CLK_FREQ = 1_000_000, // Clock frequency for Morse Decoder
-    parameter DOT_MAX = 200, // Time duration for Morse Code dot (<= 20) and dash (> 20)
-    parameter GAP_MAX = 300, // Time duration for Morse Code short gap (<= 60) and long gap (>= 60)
-    parameter SPACE_MAX = 500
+    parameter DOT_MAX = 200, // Time duration for Morse Code dot (<= 2000 ms) and dash (> 2000)
+    parameter GAP_MAX = 300, // Time duration for Morse Code short (<= 3000) and long gap (>= 3000)
+    parameter SPACE_MAX = 500 // Time duration to signify a whitespace between Morse characters
 )(
     // Analog Inputs
     input logic clk, nrst,
     input logic push_button,
     input logic blank_button,
     input logic comp_in,
-    
     // Display Outputs
-    output logic [SSD_WIDTH-1:0] led_out, // Unified 8-bit LED bar
-    output logic [SSD_WIDTH-1:0] ss7, ss6, ss5, ss4, ss3, ss2, ss1, ss0
+    output logic mosi,
+    output logic shift_clock,
+    output logic seri_ready
 );
     // Internal Interconnects
     logic start, calibrate, seg_mode;
@@ -25,6 +26,9 @@ module edison #( // Clean for synthesis
     logic data_ready, char_ready, sah_en, light_on;
     logic [7:0] ascii_char;
     logic [BCD_WIDTH-1:0] seg_ones, seg_tens, seg_hundreds, seg_thousands;
+    logic [SSD_WIDTH-1:0] led_out; // Unified 8-bit LED bar
+    logic [SSD_WIDTH-1:0] ss[7:0]; // ss7-ss0 for Seven Segment Display
+    logic [SPI_WIDTH-1:0] flat_data;
 
     // Module Instantiations (Explicit Mapping)
     // Button Debouncer/Logic
@@ -62,7 +66,7 @@ module edison #( // Clean for synthesis
     led_bar_driver u_led (
         .clk(clk), .nrst(nrst),
         .light_diff(light_diff), 
-        .led(led_out) 
+        .led_out(led_out) 
     );
 
     // Morse Code Logic
@@ -95,7 +99,18 @@ module edison #( // Clean for synthesis
         .seg_thousands(seg_thousands),
         .char_ready(char_ready),
         .ascii_char(ascii_char),
-        .ss0(ss0), .ss1(ss1), .ss2(ss2), .ss3(ss3),
-        .ss4(ss4), .ss5(ss5), .ss6(ss6), .ss7(ss7)
+        .ss0(ss[0]), .ss1(ss[1]), .ss2(ss[2]), .ss3(ss[3]),
+        .ss4(ss[4]), .ss5(ss[5]), .ss6(ss[6]), .ss7(ss[7])
+    );
+
+    // Flatten data for serialization: [LEDs][ss7][ss6]...[ss0]
+    assign flat_data = {led_out, ss[7], ss[6], ss[5], ss[4], ss[3], ss[2], ss[1], ss[0]};
+    // SPI Serializer
+    spi_serializer #(SPI_WIDTH, 4) u_spi (
+        .clk(clk), .nrst(nrst),
+        .flat_data(flat_data),
+        .mosi(mosi),
+        .shift_clock(shift_clock),
+        .seri_ready(seri_ready)
     );
 endmodule

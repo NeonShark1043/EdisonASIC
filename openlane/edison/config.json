@@ -10,7 +10,8 @@
         "dir::../../verilog/rtl/edison/lux_converter.sv",
         "dir::../../verilog/rtl/edison/morse_decoder.sv",
         "dir::../../verilog/rtl/edison/light_leds.sv",
-        "dir::../../verilog/rtl/edison/seven_segment_display.sv"
+        "dir::../../verilog/rtl/edison/seven_segment_display.sv",
+        "dir::../../verilog/rtl/edison/spi_serializer.sv"
     ],
     "CLOCK_PERIOD": 25,
     "CLOCK_PORT": "clk",
