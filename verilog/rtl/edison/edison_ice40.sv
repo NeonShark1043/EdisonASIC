@@ -10,7 +10,7 @@ module top #(
     parameter GAP_MAX = 300, // Time duration for Morse Code short gap (<= 60) and long gap (>= 60)
     parameter SPACE_MAX = 500
 )(
-    input logic clk, nrst, // Switch from hz100 to clk (?)
+    input logic hz100, reset, // Switch from hz100 to clk (?)
     input logic [20:0] pb, // Physical Inputs => pb[0]: Push, pb[1]: Blank, pb[2]: Comp_in
     output logic [SSD_WIDTH-1:0] left, right, // Logic vectors hard-wired to physical LED
     output logic [SSD_WIDTH-1:0] ss7, ss6, ss5, ss4, ss3, ss2, ss1, ss0,
@@ -30,6 +30,9 @@ module top #(
     logic [BCD_WIDTH-1:0] seg_ones, seg_tens, seg_hundreds, seg_thousands;
     logic [SSD_WIDTH-1:0] seg_digits [SSD_WIDTH-1:0];
 
+    assign clk = hz100;
+    assign nrst = ~reset;
+
     logic [BIT_WIDTH-1:0] target_analog_value;
     logic comp_in;
     assign target_analog_value = pb[2] ? 12'd3500 : 12'd0;
@@ -38,7 +41,7 @@ module top #(
     soc_button #(HOLD_MAX) u_button (.push_button(pb[0]), .blank_button(pb[1]), .*);
     sar_adc_controller #(BIT_WIDTH, HOLD_MAX) u_adc (.*);
     light_processor #(BIT_WIDTH, AVG_WINDOW, 50) u_processor (.*);
-    led_bar_driver u_led (.led({left, right[1:0]}), .*); // Mapping 10 LEDs
+    led_bar_driver u_led (.led_out({left, right[1:0]}), .*); // Mapping 10 LEDs
     morse_decoder #(CLK_FREQ, 10, DOT_MAX, GAP_MAX, SPACE_MAX) u_decoder (.*);
     lux_converter #(BIT_WIDTH, BCD_WIDTH, AVG_WINDOW) u_converter (.*);
     seven_segment_display #(BIT_WIDTH, BCD_WIDTH, SSD_WIDTH) u_seven (.*);
@@ -370,6 +373,8 @@ module lux_converter #(
     logic [BIT_WIDTH-1:0] avg_acc;
     logic [23:0] lux_value; // 24-bit to prevent overflow during the multiplication step (312!)
     logic [BIT_WIDTH+1:0] lux_display; // Lux value after shift
+    logic [BIT_WIDTH+3:0] bcd_register;
+    integer i;
 
     // Block Average Window
     always_ff @(posedge clk or negedge nrst) begin
@@ -390,18 +395,31 @@ module lux_converter #(
     end
 
     always_comb begin
-        // Assuming 4095 corresponds to 9999 Lux max
-        // Lux = ADC * [V / (4095 * R * S)]
-        // In schematics, set power supply 3.3V, photodiode sensivity 0.05µA/Lux, and thus feedback resistor 6.8kΩ
-        // Therefore, Lux = ADC * 2.37 = ADC * (K / 2^Shift) = (ADC * K) >> Shift
-        lux_value = 24'(avg_acc) * 24'd625;
-        lux_display = 14'(lux_value >> 8); // 625 / 2^8 = 2.44
-        // Binary to BCD (Binary Coded Decimal) or Decimal Split
-        // Cast the 32-bit integer result to 4 bits to satisfy the linter
-        seg_thousands = BCD_WIDTH'((32'(lux_display) / 1000) % 10);
-        seg_hundreds = BCD_WIDTH'((32'(lux_display) / 100) % 10);
-        seg_tens = BCD_WIDTH'((32'(lux_display) / 10) % 10);
-        seg_ones = BCD_WIDTH'(32'(lux_display) % 10);
+        /* Assuming 4095 corresponds to 9999 Lux max
+        Lux = ADC * [V / (4095 * R * S)]
+        In schematics, set power supply 3.3V, photodiode sensivity 0.05µA/Lux, and thus feedback resistor 6.8kΩ
+        Therefore, Lux = ADC * 2.37 = ADC * (K / 2^Shift) = (ADC * K) >> Shift
+        => Factor: 2.37 ~ 2.44 = 625 / 2^8 = (512 + 64 + 32 + 16 + 1) / 2^8 */
+        lux_value = (24'(avg_acc) << 9) + (24'(avg_acc) << 6) + (24'(avg_acc) << 5) + (24'(avg_acc) << 4) + 24'(avg_acc);
+        lux_display = 14'(lux_value >> 8);
+    end
+
+    always_comb begin
+        bcd_register = '0;
+        for(i = 13; i >= 0; i = i - 1) begin
+            // Check each BCD nibble, add 3 if >= 5
+            if(bcd_register[3:0] >= 5) bcd_register[3:0] = bcd_register[3:0] + 3;
+            if(bcd_register[7:4] >= 5) bcd_register[7:4] = bcd_register[7:4] + 3;
+            if(bcd_register[11:8] >= 5) bcd_register[11:8] = bcd_register[11:8] + 3;
+            if(bcd_register[15:12] >= 5) bcd_register[15:12] = bcd_register[15:12] + 3;
+            // Shift left by 1 bit to pull in the next bit of lux_display
+            bcd_register = {bcd_register[14:0], lux_display[i]};
+        end
+
+        seg_thousands = bcd_register[15:12];
+        seg_hundreds = bcd_register[11:8];
+        seg_tens = bcd_register[7:4];
+        seg_ones = bcd_register[3:0];
     end
 endmodule
 
