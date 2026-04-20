@@ -4,8 +4,8 @@ module edison #( // Clean for synthesis
     parameter SSD_WIDTH = 8, // For each eight of 7-Segment Display
     parameter SPI_WIDTH = 72, // For serializer takes in total bits of top outputs
     parameter HOLD_MAX = 10, // Time requirement for button hold and register wait
-    parameter AVG_WINDOW = 16, // The number of samples to average over in Light Processing
-    parameter CLK_FREQ = 1_000_000, // Clock frequency for Morse Decoder
+    parameter AVG_WINDOW = 16, // (2) The number of samples to average over in Light Processing
+    parameter CLK_FREQ = 500, // (1_000_000) Clock frequency for Morse Decoder
     parameter DOT_MAX = 200, // Time duration for Morse Code dot (<= 2000 ms) and dash (> 2000)
     parameter GAP_MAX = 300, // Time duration for Morse Code short (<= 3000) and long gap (>= 3000)
     parameter SPACE_MAX = 500 // Time duration to signify a whitespace between Morse characters
