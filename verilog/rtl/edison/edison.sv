@@ -92,7 +92,7 @@ module edison #( // Clean for synthesis
     // Seven Segment Display Controller
     seven_segment_display #(BIT_WIDTH, BCD_WIDTH, SSD_WIDTH) u_seven (
         .clk(clk), .nrst(nrst),
-        .start(start), .calibrate(calibrate)
+        .start(start), .calibrate(calibrate),
         .seg_mode(seg_mode),
         .seg_ones(seg_ones),
         .seg_tens(seg_tens),
