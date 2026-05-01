@@ -1,17 +1,61 @@
-module edison #( // Clean for synthesis
+`default_nettype none
+module edison(
+`ifdef USE_POWER_PINS
+    inout VPWR,
+    inout VGND,
+`endif
+    input wire clk,
+    input wire nrst,
+    input wire enable, // always 1 when the design is powered
+    input  wire [7:0] ui_in, // Dedicated inputs
+    output wire [7:0] uo_out, // Dedicated outputs
+    input  wire [7:0] uio_in, // IOs: Input path
+    output wire [7:0] uio_out, // IOs: Output path
+    output wire [7:0] uio_oe, // IOs: Enable path (active high: 0=input, 1=output)
+)
+    // Unused pins
+    wire _unused = &{enable, ui_in[7:3], uio_in, 1'b0}; // list inputs to prevent synthesis warnings
+    assign uo_out[7:3] = 5'b00000;
+    assign uio_out = 8'b00000000;
+    assign uio_oe = 8'b00000000;
+
+    top_module #(
+        .BIT_WIDTH(12),
+        .BCD_WIDTH(4),
+        .SSD_WIDTH(8),
+        .SPI_WIDTH(72),
+        .HOLD_MAX(10),
+        .AVG_WINDOW(16),
+        .CLK_FREQ(1_000_000), 
+        .DOT_MAX(200),
+        .GAP_MAX(300),
+        .SPACE_MAX(500)
+    ) core_inst (
+        .clk(clk),
+        .nrst(nrst),
+        .push_button(ui_in[0]),
+        .blank_button(ui_in[1]),
+        .comp_in(ui_in[2]),
+        .mosi(uo_out[0]),
+        .shift_clock(uo_out[1]),
+        .seri_ready(uo_out[2])
+    );
+endmodule
+
+module top_module #( // Clean for synthesis
     parameter BIT_WIDTH = 12, // For digital readings of light in ADC
     parameter BCD_WIDTH = 4, // For each digit under BCD form in Lux Converter and 7-Segment
     parameter SSD_WIDTH = 8, // For each eight of 7-Segment Display
     parameter SPI_WIDTH = 72, // For serializer takes in total bits of top outputs
     parameter HOLD_MAX = 10, // Time requirement for button hold and register wait
     parameter AVG_WINDOW = 16, // (2) The number of samples to average over in Light Processing
-    parameter CLK_FREQ = 500, // (1_000_000) Clock frequency for Morse Decoder
+    parameter CLK_FREQ = 1_000_000, // (1_000_000) Clock frequency for Morse Decoder
     parameter DOT_MAX = 200, // Time duration for Morse Code dot (<= 2000 ms) and dash (> 2000)
     parameter GAP_MAX = 300, // Time duration for Morse Code short (<= 3000) and long gap (>= 3000)
     parameter SPACE_MAX = 500 // Time duration to signify a whitespace between Morse characters
-)(
+)(    
     // Analog Inputs
-    input logic clk, nrst,
+    input logic clk, nrst
     input logic push_button,
     input logic blank_button,
     input logic comp_in,
