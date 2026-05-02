@@ -568,9 +568,10 @@ module morse_decoder #(
     logic tick_en; // HIGH for exactly one clock cycle every time the tick_counter reaches its target. This creates a periodic "heartbeat" (every 10ms) that the rest of FSM uses to increment the duration counters (mark_counter and gap_counter)
 
     // Tree Memory - 63 entries to cover up to 5 levels of Morse (A-Z, 0-9)
-    logic [7:0] morse_tree [0:63];
-    initial begin
-        for (int i = 0; i < 64; i++) morse_tree[i] = '0;
+    function automatic [63:0][7:0] init_morse_tree();
+        logic [63:0][7:0] morse_tree;
+        morse_tree = '0; // Default all to Null/0
+
         // Level 0 & 1
         morse_tree[0] = 8'h00; // Null
         morse_tree[1] = 8'h00; // Root (Start here)
@@ -647,7 +648,11 @@ module morse_decoder #(
         morse_tree[58] = 8'h00; // Null (--.-.)
         morse_tree[59] = 8'h00; // Null (--.--)
         morse_tree[61] = 8'h00; // Null (---.-)
-    end
+
+        return morse_tree;
+    endfunction
+
+    localparam [63:0][7:0] MORSE_ROM = init_morse_tree();
 
     // 10 ms Tick Generator - mark/gap counters increment every 10 ms instead of 10 ns
     always_ff @(posedge clk or negedge nrst) begin
@@ -724,7 +729,7 @@ module morse_decoder #(
                 end
 
                 DECODE: begin
-                    ascii_char <= morse_tree[tree_index];
+                    ascii_char <= MORSE_ROM[tree_index];
                     gap_counter <= 0;
                 end
 
