@@ -7,22 +7,23 @@ module edison(
     input wire clk,
     input wire nrst,
     input wire enable, // always 1 when the design is powered
-    input wire [7:0] ui_in, // Dedicated inputs
+    input  wire [7:0] ui_in, // Dedicated inputs
     output wire [7:0] uo_out, // Dedicated outputs
-    input wire [7:0] uio_in, // IOs: Input path
+    input  wire [7:0] uio_in, // IOs: Input path
     output wire [7:0] uio_out, // IOs: Output path
     output wire [7:0] uio_oe // IOs: Enable path (active high: 0=input, 1=output)
 );
     // Unused pins
-    assign uo_out[7:3] = '0;
-    assign uio_out = '0;
-    assign uio_oe = '0;
+    wire _unused = &{enable, ui_in[7:3], uio_in, 1'b0}; // list inputs to prevent synthesis warnings
+    assign uo_out[7:3] = 5'b00000;
+    assign uio_out = 8'b00000000;
+    assign uio_oe = 8'b00000000;
 
     top_module #(
         .BIT_WIDTH(12),
         .BCD_WIDTH(4),
         .SSD_WIDTH(8),
-        .SPI_WIDTH(72),
+        .SPI_WIDTH(74),
         .HOLD_MAX(10),
         .AVG_WINDOW(16),
         .CLK_FREQ(1_000_000), 
@@ -39,15 +40,13 @@ module edison(
         .shift_clock(uo_out[1]),
         .seri_ready(uo_out[2])
     );
-
-    wire _unused = &{enable, ui_in[7:3], uio_in, 1'b0}; // list inputs to prevent synthesis warnings
 endmodule
 
 module top_module #( // Clean for synthesis
     parameter BIT_WIDTH = 12, // For digital readings of light in ADC
     parameter BCD_WIDTH = 4, // For each digit under BCD form in Lux Converter and 7-Segment
     parameter SSD_WIDTH = 8, // For each eight of 7-Segment Display
-    parameter SPI_WIDTH = 72, // For serializer takes in total bits of top outputs
+    parameter SPI_WIDTH = 74, // For serializer takes in total bits of top outputs
     parameter HOLD_MAX = 10, // Time requirement for button hold and register wait
     parameter AVG_WINDOW = 16, // (2) The number of samples to average over in Light Processing
     parameter CLK_FREQ = 1_000_000, // (1_000_000) Clock frequency for Morse Decoder
@@ -71,7 +70,7 @@ module top_module #( // Clean for synthesis
     logic data_ready, char_ready, sah_en, light_on;
     logic [7:0] ascii_char;
     logic [BCD_WIDTH-1:0] seg_ones, seg_tens, seg_hundreds, seg_thousands;
-    logic [SSD_WIDTH-1:0] led_out; // Unified 8-bit LED bar
+    logic [9:0] led_out; // Unified 8-bit LED bar
     logic [SSD_WIDTH-1:0] ss[7:0]; // ss7-ss0 for Seven Segment Display
     logic [SPI_WIDTH-1:0] flat_data;
 
@@ -568,62 +567,52 @@ module morse_decoder #(
     logic [15:0] mark_counter, gap_counter;
     logic tick_en; // HIGH for exactly one clock cycle every time the tick_counter reaches its target. This creates a periodic "heartbeat" (every 10ms) that the rest of FSM uses to increment the duration counters (mark_counter and gap_counter)
 
-    localparam [511:0] MORSE_ROM = init_morse_tree();
-    function automatic [511:0] init_morse_tree;
-        // Internal variables must be 'reg' for this frontend
-        reg [511:0] temp_tree;
-        integer i;
-        begin
-            temp_tree = 512'b0; // Initialize all to Null
-
+    // Tree Memory - 63 entries to cover up to 5 levels of Morse (A-Z, 0-9)
+    function automatic [7:0] morse_tree(input [5:0] index);
+        case(index)
             // Level 2 (1 Symbol)
-            temp_tree[(2*8) +: 8] = 8'h45; // E (.)
-            temp_tree[(3*8) +: 8] = 8'h54; // T (-)
-
+            6'd2: morse_tree = 8'h45; // E (.)
+            6'd3: morse_tree = 8'h54; // T (-)
             // Level 3 (2 Symbols)
-            temp_tree[(4*8) +: 8] = 8'h49; // I (..)
-            temp_tree[(5*8) +: 8] = 8'h41; // A (.-)
-            temp_tree[(6*8) +: 8] = 8'h4E; // N (-.)
-            temp_tree[(7*8) +: 8] = 8'h4D; // M (--)
-
+            6'd4: morse_tree = 8'h49; // I (..)
+            6'd5: morse_tree = 8'h41; // A (.-)
+            6'd6: morse_tree = 8'h4E; // N (-.)
+            6'd7: morse_tree = 8'h4D; // M (--)
             // Level 4 (3 Symbols)
-            temp_tree[(8*8) +: 8] = 8'h53; // S (...)
-            temp_tree[(9*8) +: 8] = 8'h55; // U (..-)
-            temp_tree[(10*8) +: 8] = 8'h52; // R (.-.)
-            temp_tree[(11*8) +: 8] = 8'h57; // W (.--)
-            temp_tree[(12*8) +: 8] = 8'h44; // D (-..)
-            temp_tree[(13*8) +: 8] = 8'h4B; // K (-.-)
-            temp_tree[(14*8) +: 8] = 8'h47; // G (--.)
-            temp_tree[(15*8) +: 8] = 8'h4F; // O (---)
-
+            6'd8: morse_tree = 8'h53; // S (...)
+            6'd9: morse_tree = 8'h55; // U (..-)
+            6'd10: morse_tree = 8'h52; // R (.-.)
+            6'd11: morse_tree = 8'h57; // W (.--)
+            6'd12: morse_tree = 8'h44; // D (-..)
+            6'd13: morse_tree = 8'h4B; // K (-.-)
+            6'd14: morse_tree = 8'h47; // G (--.)
+            6'd15: morse_tree = 8'h4F; // O (---)
             // Level 5 (4 Symbols)
-            temp_tree[(16*8) +: 8] = 8'h48; // H (....)
-            temp_tree[(17*8) +: 8] = 8'h56; // V (...-)
-            temp_tree[(18*8) +: 8] = 8'h46; // F (..-.)
-            temp_tree[(20*8) +: 8] = 8'h4C; // L (.-..)
-            temp_tree[(22*8) +: 8] = 8'h50; // P (.--.)
-            temp_tree[(23*8) +: 8] = 8'h4A; // J (.---)
-            temp_tree[(24*8) +: 8] = 8'h42; // B (-...)
-            temp_tree[(25*8) +: 8] = 8'h58; // X (-..-)
-            temp_tree[(26*8) +: 8] = 8'h43; // C (-.-.)
-            temp_tree[(27*8) +: 8] = 8'h59; // Y (-.--)
-            temp_tree[(28*8) +: 8] = 8'h5A; // Z (--..)
-            temp_tree[(29*8) +: 8] = 8'h51; // Q (--.-)
-
-            // Level 6 (Numbers)
-            temp_tree[(32*8) +: 8] = 8'h35; // 5
-            temp_tree[(33*8) +: 8] = 8'h34; // 4
-            temp_tree[(35*8) +: 8] = 8'h33; // 3
-            temp_tree[(39*8) +: 8] = 8'h32; // 2
-            temp_tree[(47*8) +: 8] = 8'h31; // 1
-            temp_tree[(48*8) +: 8] = 8'h36; // 6
-            temp_tree[(56*8) +: 8] = 8'h37; // 7
-            temp_tree[(60*8) +: 8] = 8'h38; // 8
-            temp_tree[(62*8) +: 8] = 8'h39; // 9
-            temp_tree[(63*8) +: 8] = 8'h30; // 0
-
-            init_morse_tree = temp_tree;
-        end
+            6'd16: morse_tree = 8'h48; // H (....)
+            6'd17: morse_tree = 8'h56; // V (...-)
+            6'd18: morse_tree = 8'h46; // F (..-.)
+            6'd20: morse_tree = 8'h4C; // L (.-..)
+            6'd22: morse_tree = 8'h50; // P (.--.)
+            6'd23: morse_tree = 8'h4A; // J (.---)
+            6'd24: morse_tree = 8'h42; // B (-...)
+            6'd25: morse_tree = 8'h58; // X (-..-)
+            6'd26: morse_tree = 8'h43; // C (-.-.)
+            6'd27: morse_tree = 8'h59; // Y (-.--)
+            6'd28: morse_tree = 8'h5A; // Z (--..)
+            6'd29: morse_tree = 8'h51; // Q (--.-)
+            // Level 6 (5 Symbols - Numbers)
+            6'd32: morse_tree = 8'h35; // 5 (.....)
+            6'd33: morse_tree = 8'h34; // 4 (....-)
+            6'd35: morse_tree = 8'h33; // 3 (...--)
+            6'd39: morse_tree = 8'h32; // 2 (..---)
+            6'd47: morse_tree = 8'h31; // 1 (.----)
+            6'd48: morse_tree = 8'h36; // 6 (-....)
+            6'd56: morse_tree = 8'h37; // 7 (--...)
+            6'd60: morse_tree = 8'h38; // 8 (---..)
+            6'd62: morse_tree = 8'h39; // 9 (----.)
+            6'd63: morse_tree = 8'h30; // 0 (-----)
+            default: morse_tree = 8'h00;
+        endcase
     endfunction
 
     // 10 ms Tick Generator - mark/gap counters increment every 10 ms instead of 10 ns
@@ -701,7 +690,7 @@ module morse_decoder #(
                 end
 
                 DECODE: begin
-                    ascii_char <= MORSE_ROM[tree_index * 8 +: 8];
+                    ascii_char <= morse_tree(tree_index);
                     gap_counter <= 0;
                 end
 
