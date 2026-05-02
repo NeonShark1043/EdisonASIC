@@ -46,7 +46,7 @@ module top_module #( // Clean for synthesis
     parameter BIT_WIDTH = 12, // For digital readings of light in ADC
     parameter BCD_WIDTH = 4, // For each digit under BCD form in Lux Converter and 7-Segment
     parameter SSD_WIDTH = 8, // For each eight of 7-Segment Display
-    parameter SPI_WIDTH = 72, // For serializer takes in total bits of top outputs
+    parameter SPI_WIDTH = 74, // For serializer takes in total bits of top outputs
     parameter HOLD_MAX = 10, // Time requirement for button hold and register wait
     parameter AVG_WINDOW = 16, // (2) The number of samples to average over in Light Processing
     parameter CLK_FREQ = 1_000_000, // (1_000_000) Clock frequency for Morse Decoder
@@ -70,7 +70,7 @@ module top_module #( // Clean for synthesis
     logic data_ready, char_ready, sah_en, light_on;
     logic [7:0] ascii_char;
     logic [BCD_WIDTH-1:0] seg_ones, seg_tens, seg_hundreds, seg_thousands;
-    logic [SSD_WIDTH-1:0] led_out; // Unified 8-bit LED bar
+    logic [10:0] led_out; // Unified 8-bit LED bar
     logic [SSD_WIDTH-1:0] ss[7:0]; // ss7-ss0 for Seven Segment Display
     logic [SPI_WIDTH-1:0] flat_data;
 
