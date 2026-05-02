@@ -7,17 +7,16 @@ module edison(
     input wire clk,
     input wire nrst,
     input wire enable, // always 1 when the design is powered
-    input  wire [7:0] ui_in, // Dedicated inputs
+    input wire [7:0] ui_in, // Dedicated inputs
     output wire [7:0] uo_out, // Dedicated outputs
-    input  wire [7:0] uio_in, // IOs: Input path
+    input wire [7:0] uio_in, // IOs: Input path
     output wire [7:0] uio_out, // IOs: Output path
     output wire [7:0] uio_oe // IOs: Enable path (active high: 0=input, 1=output)
 );
     // Unused pins
-    wire _unused = &{enable, ui_in[7:3], uio_in, 1'b0}; // list inputs to prevent synthesis warnings
-    assign uo_out[7:3] = 5'b00000;
-    assign uio_out = 8'b00000000;
-    assign uio_oe = 8'b00000000;
+    assign uo_out[7:3] = '0;
+    assign uio_out = '0;
+    assign uio_oe = '0;
 
     top_module #(
         .BIT_WIDTH(12),
@@ -40,13 +39,15 @@ module edison(
         .shift_clock(uo_out[1]),
         .seri_ready(uo_out[2])
     );
+
+    wire _unused = &{enable, ui_in[7:3], uio_in, 1'b0}; // list inputs to prevent synthesis warnings
 endmodule
 
 module top_module #( // Clean for synthesis
     parameter BIT_WIDTH = 12, // For digital readings of light in ADC
     parameter BCD_WIDTH = 4, // For each digit under BCD form in Lux Converter and 7-Segment
     parameter SSD_WIDTH = 8, // For each eight of 7-Segment Display
-    parameter SPI_WIDTH = 74, // For serializer takes in total bits of top outputs
+    parameter SPI_WIDTH = 72, // For serializer takes in total bits of top outputs
     parameter HOLD_MAX = 10, // Time requirement for button hold and register wait
     parameter AVG_WINDOW = 16, // (2) The number of samples to average over in Light Processing
     parameter CLK_FREQ = 1_000_000, // (1_000_000) Clock frequency for Morse Decoder
@@ -70,7 +71,7 @@ module top_module #( // Clean for synthesis
     logic data_ready, char_ready, sah_en, light_on;
     logic [7:0] ascii_char;
     logic [BCD_WIDTH-1:0] seg_ones, seg_tens, seg_hundreds, seg_thousands;
-    logic [10:0] led_out; // Unified 8-bit LED bar
+    logic [SSD_WIDTH-1:0] led_out; // Unified 8-bit LED bar
     logic [SSD_WIDTH-1:0] ss[7:0]; // ss7-ss0 for Seven Segment Display
     logic [SPI_WIDTH-1:0] flat_data;
 
