@@ -11,8 +11,8 @@ module edison(
     output wire [7:0] uo_out, // Dedicated outputs
     input  wire [7:0] uio_in, // IOs: Input path
     output wire [7:0] uio_out, // IOs: Output path
-    output wire [7:0] uio_oe, // IOs: Enable path (active high: 0=input, 1=output)
-)
+    output wire [7:0] uio_oe // IOs: Enable path (active high: 0=input, 1=output)
+);
     // Unused pins
     wire _unused = &{enable, ui_in[7:3], uio_in, 1'b0}; // list inputs to prevent synthesis warnings
     assign uo_out[7:3] = 5'b00000;
@@ -55,7 +55,7 @@ module top_module #( // Clean for synthesis
     parameter SPACE_MAX = 500 // Time duration to signify a whitespace between Morse characters
 )(    
     // Analog Inputs
-    input logic clk, nrst
+    input logic clk, nrst,
     input logic push_button,
     input logic blank_button,
     input logic comp_in,
@@ -568,86 +568,54 @@ module morse_decoder #(
     logic tick_en; // HIGH for exactly one clock cycle every time the tick_counter reaches its target. This creates a periodic "heartbeat" (every 10ms) that the rest of FSM uses to increment the duration counters (mark_counter and gap_counter)
 
     // Tree Memory - 63 entries to cover up to 5 levels of Morse (A-Z, 0-9)
-    logic [7:0] morse_tree [0:63];
-    initial begin
-        for (int i = 0; i < 64; i++) morse_tree[i] = '0;
-        // Level 0 & 1
-        morse_tree[0] = 8'h00; // Null
-        morse_tree[1] = 8'h00; // Root (Start here)
+    function automatic [7:0] morse_tree(input [5:0] index);
+        case(index)
+            // Level 0 & 1  (implictly set to zero)
 
-        // Level 2 (1 Symbol)
-        morse_tree[2] = 8'h45; // E (.)
-        morse_tree[3] = 8'h54; // T (-)
-
-        // Level 3 (2 Symbols)
-        morse_tree[4] = 8'h49; // I (..)
-        morse_tree[5] = 8'h41; // A (.-)
-        morse_tree[6] = 8'h4E; // N (-.)
-        morse_tree[7] = 8'h4D; // M (--)
-
-        // Level 4 (3 Symbols)
-        morse_tree[8] = 8'h53; // S (...)
-        morse_tree[9] = 8'h55; // U (..-)
-        morse_tree[10] = 8'h52; // R (.-.)
-        morse_tree[11] = 8'h57; // W (.--)
-        morse_tree[12] = 8'h44; // D (-..)
-        morse_tree[13] = 8'h4B; // K (-.-)
-        morse_tree[14] = 8'h47; // G (--.)
-        morse_tree[15] = 8'h4F; // O (---)
-
-        // Level 5 (4 Symbols)
-        morse_tree[16] = 8'h48; // H (....)
-        morse_tree[17] = 8'h56; // V (...-)
-        morse_tree[18] = 8'h46; // F (..-.)
-        morse_tree[19] = 8'h00; // Null (..--)
-        morse_tree[20] = 8'h4C; // L (.-..)
-        morse_tree[21] = 8'h00; // Null (.-.-)
-        morse_tree[22] = 8'h50; // P (.--.)
-        morse_tree[23] = 8'h4A; // J (.---)
-        morse_tree[24] = 8'h42; // B (-...)
-        morse_tree[25] = 8'h58; // X (-..-)
-        morse_tree[26] = 8'h43; // C (-.-.)
-        morse_tree[27] = 8'h59; // Y (-.--)
-        morse_tree[28] = 8'h5A; // Z (--..)
-        morse_tree[29] = 8'h51; // Q (--.-)
-        morse_tree[30] = 8'h00; // Null (---.)
-        morse_tree[31] = 8'h00; // Null (----)
-
-        // Level 6 (5 Symbols - Numbers)
-        morse_tree[32] = 8'h35; // 5 (.....)
-        morse_tree[33] = 8'h34; // 4 (....-)
-        morse_tree[35] = 8'h33; // 3 (...--)
-        morse_tree[39] = 8'h32; // 2 (..---)
-        morse_tree[47] = 8'h31; // 1 (.----)
-        morse_tree[48] = 8'h36; // 6 (-....)
-        morse_tree[56] = 8'h37; // 7 (--...)
-        morse_tree[60] = 8'h38; // 8 (---..)
-        morse_tree[62] = 8'h39; // 9 (----.)
-        morse_tree[63] = 8'h30; // 0 (-----)
-
-        morse_tree[34] = 8'h00; // Null (...-.)
-        morse_tree[36] = 8'h00; // Null (..-..)
-        morse_tree[37] = 8'h00; // Null (..-.-)
-        morse_tree[38] = 8'h00; // Null (..-..)
-        morse_tree[40] = 8'h00; // Null (.-...)
-        morse_tree[41] = 8'h00; // Null (.-..-)
-        morse_tree[42] = 8'h00; // Null (.-.-.)
-        morse_tree[43] = 8'h00; // Null (.-.--)
-        morse_tree[44] = 8'h00; // Null (.--..)
-        morse_tree[45] = 8'h00; // Null (.--.-)
-        morse_tree[46] = 8'h00; // Null (.---.)
-        morse_tree[49] = 8'h00; // Null (-...-)
-        morse_tree[50] = 8'h00; // Null (-..-.)
-        morse_tree[51] = 8'h00; // Null (-..--)
-        morse_tree[52] = 8'h00; // Null (-.-..)
-        morse_tree[53] = 8'h00; // Null (-.-.-)
-        morse_tree[54] = 8'h00; // Null (-.--.)
-        morse_tree[55] = 8'h00; // Null (-.---)
-        morse_tree[57] = 8'h00; // Null (--..-)
-        morse_tree[58] = 8'h00; // Null (--.-.)
-        morse_tree[59] = 8'h00; // Null (--.--)
-        morse_tree[61] = 8'h00; // Null (---.-)
-    end
+            // Level 2 (1 Symbol)
+            6'd2:  morse_tree = 8'h45; // E (.)
+            6'd3:  morse_tree = 8'h54; // T (-)
+            // Level 3 (2 Symbols)
+            6'd4:  morse_tree = 8'h49; // I (..)
+            6'd5:  morse_tree = 8'h41; // A (.-)
+            6'd6:  morse_tree = 8'h4E; // N (-.)
+            6'd7:  morse_tree = 8'h4D; // M (--)
+            // Level 4 (3 Symbols)
+            6'd8:  morse_tree = 8'h53; // S (...)
+            6'd9:  morse_tree = 8'h55; // U (..-)
+            6'd10: morse_tree = 8'h52; // R (.-.)
+            6'd11: morse_tree = 8'h57; // W (.--)
+            6'd12: morse_tree = 8'h44; // D (-..)
+            6'd13: morse_tree = 8'h4B; // K (-.-)
+            6'd14: morse_tree = 8'h47; // G (--.)
+            6'd15: morse_tree = 8'h4F; // O (---)
+            // Level 5 (4 Symbols)
+            6'd16: morse_tree = 8'h48; // H (....)
+            6'd17: morse_tree = 8'h56; // V (...-)
+            6'd18: morse_tree = 8'h46; // F (..-.)
+            6'd20: morse_tree = 8'h4C; // L (.-..)
+            6'd22: morse_tree = 8'h50; // P (.--.)
+            6'd23: morse_tree = 8'h4A; // J (.---)
+            6'd24: morse_tree = 8'h42; // B (-...)
+            6'd25: morse_tree = 8'h58; // X (-..-)
+            6'd26: morse_tree = 8'h43; // C (-.-.)
+            6'd27: morse_tree = 8'h59; // Y (-.--)
+            6'd28: morse_tree = 8'h5A; // Z (--..)
+            6'd29: morse_tree = 8'h51; // Q (--.-)
+            // Level 6 (5 Symbols - Numbers)
+            6'd32: morse_tree = 8'h35; // 5 (.....)
+            6'd33: morse_tree = 8'h34; // 4 (....-)
+            6'd35: morse_tree = 8'h33; // 3 (...--)
+            6'd39: morse_tree = 8'h32; // 2 (..---)
+            6'd47: morse_tree = 8'h31; // 1 (.----)
+            6'd48: morse_tree = 8'h36; // 6 (-....)
+            6'd56: morse_tree = 8'h37; // 7 (--...)
+            6'd60: morse_tree = 8'h38; // 8 (---..)
+            6'd62: morse_tree = 8'h39; // 9 (----.)
+            6'd63: morse_tree = 8'h30; // 0 (-----)
+            default: morse_tree = 8'h00;
+        endcase
+    endfunction
 
     // 10 ms Tick Generator - mark/gap counters increment every 10 ms instead of 10 ns
     always_ff @(posedge clk or negedge nrst) begin
@@ -724,7 +692,7 @@ module morse_decoder #(
                 end
 
                 DECODE: begin
-                    ascii_char <= morse_tree[tree_index];
+                    ascii_char <= morse_tree(tree_index);
                     gap_counter <= 0;
                 end
 
