@@ -1,0 +1,38 @@
+53. Printing statistics.
+
+=== edison ===
+
+   Number of wires:               3198
+   Number of wire bits:           3667
+   Number of public wires:          58
+   Number of public wire bits:     494
+   Number of memories:               0
+   Number of memory bits:            0
+   Number of processes:              0
+   Number of cells:               3566
+     $_ANDNOT_                     712
+     $_AND_                        109
+     $_MUX_                        908
+     $_NAND_                       154
+     $_NOR_                        132
+     $_NOT_                        132
+     $_ORNOT_                      135
+     $_OR_                         480
+     $_XNOR_                        89
+     $_XOR_                        308
+     sky130_fd_sc_hd__dfrtp_2      386
+     sky130_fd_sc_hd__dfstp_2       21
+
+   Area for cell type $_NOT_ is unknown!
+   Area for cell type $_AND_ is unknown!
+   Area for cell type $_NAND_ is unknown!
+   Area for cell type $_OR_ is unknown!
+   Area for cell type $_NOR_ is unknown!
+   Area for cell type $_XOR_ is unknown!
+   Area for cell type $_XNOR_ is unknown!
+   Area for cell type $_ANDNOT_ is unknown!
+   Area for cell type $_ORNOT_ is unknown!
+   Area for cell type $_MUX_ is unknown!
+
+   Chip area for module '\edison': 10694.006400
+
