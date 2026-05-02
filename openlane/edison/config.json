@@ -4,7 +4,7 @@
     "VERILOG_FILES": [
         "dir::../../verilog/rtl/edison/edison.sv"
     ],
-    "CLOCK_PERIOD": 1000,
+    "CLOCK_PERIOD": 25,
     "CLOCK_PORT": "clk",
 
     "//": "Core Utilization Percentage (increase to fit more cells)",
