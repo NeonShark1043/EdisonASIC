@@ -1,0 +1,57 @@
+{
+   "creator": "Yosys 0.38 (git sha1 543faed9c8c, clang++ 17.0.6 -fPIC -Os)",
+   "invocation": "stat -json -liberty /home/nanohub/nguy1380/EdisonASIC/openlane/edison/runs/26_05_02_16_28/tmp/019f0c31182545158e197bac10f9357d.lib ",
+   "modules": {
+      "\\edison": {
+         "num_wires":         3198,
+         "num_wire_bits":     3667,
+         "num_pub_wires":     58,
+         "num_pub_wire_bits": 494,
+         "num_memories":      0,
+         "num_memory_bits":   0,
+         "num_processes":     0,
+         "num_cells":         3566,
+         "area":              10694.006400,
+         "num_cells_by_type": {
+            "$_ANDNOT_": 712,
+            "$_AND_": 109,
+            "$_MUX_": 908,
+            "$_NAND_": 154,
+            "$_NOR_": 132,
+            "$_NOT_": 132,
+            "$_ORNOT_": 135,
+            "$_OR_": 480,
+            "$_XNOR_": 89,
+            "$_XOR_": 308,
+            "sky130_fd_sc_hd__dfrtp_2": 386,
+            "sky130_fd_sc_hd__dfstp_2": 21
+         }
+      }
+   },
+      "design": {
+         "num_wires":         3198,
+         "num_wire_bits":     3667,
+         "num_pub_wires":     58,
+         "num_pub_wire_bits": 494,
+         "num_memories":      0,
+         "num_memory_bits":   0,
+         "num_processes":     0,
+         "num_cells":         3566,
+         "area":              10694.006400,
+         "num_cells_by_type": {
+            "$_ANDNOT_": 712,
+            "$_AND_": 109,
+            "$_MUX_": 908,
+            "$_NAND_": 154,
+            "$_NOR_": 132,
+            "$_NOT_": 132,
+            "$_ORNOT_": 135,
+            "$_OR_": 480,
+            "$_XNOR_": 89,
+            "$_XOR_": 308,
+            "sky130_fd_sc_hd__dfrtp_2": 386,
+            "sky130_fd_sc_hd__dfstp_2": 21
+         }
+      }
+}
+
