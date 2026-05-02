@@ -55,7 +55,7 @@ module top_module #( // Clean for synthesis
     parameter SPACE_MAX = 500 // Time duration to signify a whitespace between Morse characters
 )(    
     // Analog Inputs
-    input logic clk, nrst
+    input logic clk, nrst,
     input logic push_button,
     input logic blank_button,
     input logic comp_in,
