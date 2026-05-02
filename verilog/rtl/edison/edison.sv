@@ -210,7 +210,7 @@ module soc_button #(
         .clk(clk), .nrst(nrst),
         .signal_in(push_button),
         .rising_edge(push_rise),
-        .falling_edge(push_fall),
+        .falling_edge(push_fall)
     );
 
     assign calibrate = blank_button;
@@ -932,7 +932,7 @@ module spi_serializer #(
         .clk(clk), .nrst(nrst),
         .signal_in(shift_clock),
         .rising_edge(shift_rise),
-        .falling_edge(shift_fall),
+        .falling_edge(shift_fall)
     );
 
     // Synchronous Shift Logic
