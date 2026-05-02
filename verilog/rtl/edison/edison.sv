@@ -207,11 +207,10 @@ module soc_button #(
     logic push_rise, push_fall;
 
     edge_detector push_edge (
-        .nrst(nrst),
+        .clk(clk), .nrst(nrst),
         .signal_in(push_button),
         .rising_edge(push_rise),
         .falling_edge(push_fall),
-        .*
     );
 
     assign calibrate = blank_button;
@@ -910,8 +909,9 @@ module spi_serializer #(
     output logic seri_ready // Active-low signal to latch the data at the end of data transfer
 );
     logic [SPI_WIDTH-1:0] shift_register;
-    logic [6:0] bit_counter; // Counts 0 to 71
+    logic [6:0] bit_counter; // Counts up to 71
     logic [3:0] clk_counter;
+    logic shift_rise, shift_fall;
     
     // Clock Divider for Serial Clock
     always_ff @(posedge clk or negedge nrst) begin
@@ -919,7 +919,7 @@ module spi_serializer #(
             clk_counter <= 0;
             shift_clock <= 0;
         end else begin
-            if(clk_counter == (CLK_DIV/2 - 1)) begin
+            if(clk_counter == (CLK_DIV / 2 - 1)) begin
                 clk_counter <= 0;
                 shift_clock <= ~shift_clock;
             end else begin
@@ -928,21 +928,29 @@ module spi_serializer #(
         end
     end
 
-    // Shift Logic
-    always_ff @(posedge shift_clock or negedge nrst) begin
-        if(!nrst) begin
+    edge_detector shift_edge (
+        .clk(clk), .nrst(nrst),
+        .signal_in(shift_clock),
+        .rising_edge(shift_rise),
+        .falling_edge(shift_fall),
+    );
+
+    // Synchronous Shift Logic
+    always_ff @(posedge clk or negedge nrst) begin
+        if (!nrst) begin
             shift_register <= '0;
             bit_counter <= 0;
             seri_ready <= 1;
             mosi <= 0;
-        end else begin
+        end else if(shift_rise) begin // Update logic only on system-clock aligned edge
             if(bit_counter == SPI_WIDTH - 1) begin
-                shift_register <= flat_data; // Capture flesh data and reset
+                shift_register <= flat_data; // Capture fresh data
                 bit_counter <= 0;
-                seri_ready <= 1; // Latch pulse
+                seri_ready <= 1; // Latch signal
+                mosi <= flat_data[SPI_WIDTH-1]; // Prepare first bit for next cycle
             end else begin
                 seri_ready <= 0;
-                mosi <= shift_register[SPI_WIDTH-1]; // MSB first
+                mosi <= shift_register[SPI_WIDTH-1];
                 shift_register <= {shift_register[SPI_WIDTH-2:0], 1'b0};
                 bit_counter <= bit_counter + 1;
             end
