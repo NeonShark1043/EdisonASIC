@@ -11,8 +11,8 @@ module edison(
     output wire [7:0] uo_out, // Dedicated outputs
     input  wire [7:0] uio_in, // IOs: Input path
     output wire [7:0] uio_out, // IOs: Output path
-    output wire [7:0] uio_oe, // IOs: Enable path (active high: 0=input, 1=output)
-)
+    output wire [7:0] uio_oe // IOs: Enable path (active high: 0=input, 1=output)
+);
     // Unused pins
     wire _unused = &{enable, ui_in[7:3], uio_in, 1'b0}; // list inputs to prevent synthesis warnings
     assign uo_out[7:3] = 5'b00000;
