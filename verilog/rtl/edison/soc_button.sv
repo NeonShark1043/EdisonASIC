@@ -1,6 +1,7 @@
+
 /* SoC Button Controls
 1) Kickstart SoC: Hold Push Button
-2) Zero Processing Thresholds: Hold Blank Button
+2) Zero Processing Thresholds: Press Blank Button
 3) Toggle Output Mode: Hold Blank and Press Push
 4) Shutdown SoC: Hold Push Button again
 */
@@ -20,11 +21,10 @@ module soc_button #(
     logic push_rise, push_fall;
 
     edge_detector push_edge (
-        .nrst(nrst),
+        .clk(clk), .nrst(nrst),
         .signal_in(push_button),
         .rising_edge(push_rise),
-        .falling_edge(push_fall),
-        .*
+        .falling_edge(push_fall)
     );
 
     assign calibrate = blank_button;

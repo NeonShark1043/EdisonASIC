@@ -1,6 +1,6 @@
 module led_bar_driver(
-    input  logic clk, nrst,
-    input  logic [11:0] light_diff,   
+    input logic clk, nrst,
+    input logic [11:0] light_diff,   
     output logic [9:0] led_out
 );
     always_comb begin

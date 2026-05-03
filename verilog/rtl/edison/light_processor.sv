@@ -1,3 +1,4 @@
+
 module light_processor #(
     parameter BIT_WIDTH = 12,
     parameter AVG_WINDOW = 16, // How many ADC samples are combined to create a single Moving - Must be a power of 2

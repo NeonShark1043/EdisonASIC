@@ -4,7 +4,7 @@ module seven_segment_display #(
     parameter SSD_WIDTH = 8 // For each eight of 7-Segment Display
 )(
     input logic clk, nrst,
-    input logic seg_mode,
+    input logic start, calibrate, seg_mode,
     input logic [BCD_WIDTH-1:0] seg_ones, seg_tens, seg_hundreds, seg_thousands,
     input logic char_ready,
     input logic [7:0] ascii_char,
@@ -36,36 +36,41 @@ module seven_segment_display #(
 
     always_comb begin
         for(int i = 0; i < 8; i++) seg_digits[i] = 8'd32; // Default all to blank
-        if(seg_mode == 0) begin // Lux (L) Mode (Static): Show "L" on left, value on right
-            seg_digits[7] = 8'd76; // L
-            // Add 48 to convert raw BCD (0-9) to ASCII ('0'-'9')
-            seg_digits[3] = 8'd48 + {4'b0, seg_thousands};
-            seg_digits[2] = 8'd48 + {4'b0, seg_hundreds};
-            seg_digits[1] = 8'd48 + {4'b0, seg_tens};
-            seg_digits[0] = 8'd48 + {4'b0, seg_ones};
-        end else if(seg_mode == 1) begin // Morse (M) Mode (Dynamic): Show "M" on left, numbers on right, and scrolling characters from right to left
-            seg_digits[7] = 8'd77; // M
-            seg_digits[6] = scroll_buffer[5];
-            seg_digits[5] = scroll_buffer[4];
-            seg_digits[4] = scroll_buffer[3];
-            seg_digits[3] = scroll_buffer[2];
-            seg_digits[2] = scroll_buffer[1];
-            seg_digits[1] = scroll_buffer[0];
-            seg_digits[0] = num_buffer;
+        if(start == 0) begin // "POWER OFF"
+            seg_digits[7] = 8'd80;
+            seg_digits[6] = 8'd79;
+            seg_digits[5] = 8'd87;
+            seg_digits[4] = 8'd69;
+            seg_digits[3] = 8'd82;
+            seg_digits[2] = 8'd79;
+            seg_digits[1] = 8'd70;
+            seg_digits[0] = 8'd70;
+        end else begin
+            if(seg_mode == 0) begin // Lux (L) Mode (Static): Show "L" on left, value on right
+                seg_digits[7] = 8'd76; // L
+                seg_digits[6] = (calibrate) ? 8'd66 : 8'd32;
+                // Add 48 to convert raw BCD (0-9) to ASCII ('0'-'9')
+                seg_digits[3] = 8'd48 + {4'b0, seg_thousands};
+                seg_digits[2] = 8'd48 + {4'b0, seg_hundreds};
+                seg_digits[1] = 8'd48 + {4'b0, seg_tens};
+                seg_digits[0] = 8'd48 + {4'b0, seg_ones};
+            end else if(seg_mode == 1) begin // Morse (M) Mode (Dynamic): Show "M" on left, numbers on right, and scrolling characters from right to left
+                seg_digits[7] = 8'd77; // M
+                seg_digits[6] = scroll_buffer[5];
+                seg_digits[5] = scroll_buffer[4];
+                seg_digits[4] = scroll_buffer[3];
+                seg_digits[3] = scroll_buffer[2];
+                seg_digits[2] = scroll_buffer[1];
+                seg_digits[1] = scroll_buffer[0];
+                seg_digits[0] = num_buffer;
+            end
         end
     end
 
     // Drive Displays
-    always_ff @(posedge clk, negedge nrst) begin
+    always_ff @(posedge clk or negedge nrst) begin
         if (!nrst) begin
-            ss0 <= 0;
-            ss1 <= 0;
-            ss2 <= 0;
-            ss3 <= 0;
-            ss4 <= 0;
-            ss5 <= 0;
-            ss6 <= 0;
-            ss7 <= 0;
+            {ss7, ss6, ss5, ss4, ss3, ss2, ss1, ss0} <= '0;
         end else begin
             ss0 <= {1'b0, seven_seg(seg_digits[0])};
             ss1 <= {1'b0, seven_seg(seg_digits[1])};

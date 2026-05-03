@@ -1,3 +1,4 @@
+
 module lux_converter #(
     parameter BIT_WIDTH = 12,
     parameter BCD_WIDTH = 4,
@@ -17,6 +18,7 @@ module lux_converter #(
     logic [BIT_WIDTH-1:0] avg_acc;
     logic [23:0] lux_value; // 24-bit to prevent overflow during the multiplication step (312!)
     logic [BIT_WIDTH+1:0] lux_display; // Lux value after shift
+    logic [BIT_WIDTH+3:0] bcd_register;
 
     // Block Average Window
     always_ff @(posedge clk or negedge nrst) begin
@@ -37,17 +39,29 @@ module lux_converter #(
     end
 
     always_comb begin
-        // Assuming 4095 corresponds to 9999 Lux max
-        // Lux = ADC * [V / (4095 * R * S)]
-        // In schematics, set power supply 3.3V, photodiode sensivity 0.05µA/Lux, and thus feedback resistor 6.8kΩ
-        // Therefore, Lux = ADC * 2.37 = ADC * (K / 2^Shift) = (ADC * K) >> Shift
-        lux_value = 24'(avg_acc) * 24'd625;
-        lux_display = 14'(lux_value >> 8); // 625 / 2^8 = 2.44
-        // Binary to BCD (Binary Coded Decimal) or Decimal Split
-        // Cast the 32-bit integer result to 4 bits to satisfy the linter
-        seg_thousands = BCD_WIDTH'((32'(lux_display) / 1000) % 10);
-        seg_hundreds = BCD_WIDTH'((32'(lux_display) / 100) % 10);
-        seg_tens = BCD_WIDTH'((32'(lux_display) / 10) % 10);
-        seg_ones = BCD_WIDTH'(32'(lux_display) % 10);
+        /* Assuming 4095 corresponds to 9999 Lux max
+        Lux = ADC * [V / (4095 * R * S)]
+        In schematics, set power supply 3.3V, photodiode sensivity 0.05µA/Lux, and thus feedback resistor 6.8kΩ
+        Therefore, Lux = ADC * 2.37 = ADC * (K / 2^Shift) = (ADC * K) >> Shift*/
+        lux_value = (24'(avg_acc) << 9) + (24'(avg_acc) << 6) + (24'(avg_acc) << 5) + (24'(avg_acc) << 4) + 24'(avg_acc);
+        lux_display = 14'(lux_value >> 8);
+    end
+
+    always_comb begin
+        bcd_register = '0;
+        for(int i = 13; i >= 0; i = i - 1) begin
+            // Check each BCD nibble, add 3 if >= 5
+            if(bcd_register[3:0] >= 5) bcd_register[3:0] = bcd_register[3:0] + 3;
+            if(bcd_register[7:4] >= 5) bcd_register[7:4] = bcd_register[7:4] + 3;
+            if(bcd_register[11:8] >= 5) bcd_register[11:8] = bcd_register[11:8] + 3;
+            if(bcd_register[15:12] >= 5) bcd_register[15:12] = bcd_register[15:12] + 3;
+            // Shift left by 1 bit to pull in the next bit of lux_display
+            bcd_register = {bcd_register[14:0], lux_display[i]};
+        end
+
+        seg_thousands = bcd_register[15:12];
+        seg_hundreds = bcd_register[11:8];
+        seg_tens = bcd_register[7:4];
+        seg_ones = bcd_register[3:0];
     end
 endmodule

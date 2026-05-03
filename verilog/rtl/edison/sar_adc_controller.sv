@@ -1,3 +1,4 @@
+
 module sar_adc_controller #(
     parameter BIT_WIDTH = 12,
     parameter WAIT_CYCLES = 4 // Settling time for analog components
